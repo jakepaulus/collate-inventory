@@ -5,13 +5,19 @@
 
 $op = $_GET['op'];
 
+// make sure a sort variable is passed or set it to sort my name
+if($_GET['sort'])
+  $sort = $_GET['sort'];
+else
+  $sort = "name";
+
 switch($op){
   case "view_all";
-    list_users();
+    list_users($sort);
     break;
   
   default: // Because the search form is submitted via GET (to make results linkable), the operation can't be directed via GET.
-    view_details($name);
+    view_details($sort);
     break;
 }
 	
@@ -59,7 +65,7 @@ function view_details($name){
 
 } // Ends view_details function
 
-function list_users(){
+function list_users($sort){
   require_once('db_connect.php');
   require_once('header.php');
         
@@ -80,7 +86,7 @@ function list_users(){
   }
 
   $limitvalue = $page * $limit - ($limit); 
-  $query  = "SELECT * FROM users ORDER BY name ASC LIMIT $limitvalue, $limit";        
+  $query  = "SELECT * FROM users ORDER BY '$sort' ASC LIMIT $limitvalue, $limit";        
   $result = mysql_query($query); 
 
   if(mysql_num_rows($result) == 0){
@@ -92,7 +98,9 @@ function list_users(){
   $bgcolor = "#E0E0E0"; // light gray
   
   echo "<table>".
-         "<tr><th>Name</th><th>City</th><th>Email Address</th></tr>";
+         "<tr><th><a href=userview.php?op=view_all&sort=name>Name</a></th>".
+         "<th><a href=userview.php?op=view_all&sort=city>City</th></a>".
+         "<th><a href=userview.php?op=view_all&sort=email>Email Address</th></a></tr>";
     
   while(list($uid,$name,$phone,$altphone,$address,$city,$state,$zip,$email) = mysql_fetch_row($result)){
     if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
