@@ -1,8 +1,9 @@
 <?php
 require_once('header.php');
-?>
-<div id="main">
-</div>
-<?php
+
+echo "<div id=\"main\">";
+
+echo "</div>";
+
 require_once('footer.php');
 ?>

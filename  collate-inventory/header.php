@@ -11,13 +11,18 @@
     <meta name="description" content="Organize your hardware and software inventory records" />
     <meta name="keywords" content="hardware,software,inventory,users" />
    
-<?php if($_GET['view'] == "printable"){ ?>
+<?php 
+// Make sure we supply the correct css for the view the user is requesting and we don't load those libraries if we don't have to.
+
+if($_GET['view'] == "printable"){ ?>
 <link rel="stylesheet" type="text/css" href="css/print.css" />
 <?php } else { ?>
 <link rel="stylesheet" type="text/css" href="css/bluesky.css" />
 <script src="javascripts/prototype.js" type="text/javascript"></script>
 <script src="javascripts/scriptaculous.js" type="text/javascript"></script>
-<?php } ?>
+<?php } 
+
+?>
 
 </head>
 <body id="collate-inventory">
@@ -31,6 +36,16 @@
 
         <div id="content">
 	
-<div class="path"><a href="<?php echo $_SERVER['REQUEST_URI']; if(stristr($_SERVER['REQUEST_URI'], "?") == TRUE){ echo "&amp;"; } else echo "?"; ?>view=printable">printable</a>&nbsp;
+<div class="path"><a href="<?php
+// This little mess here make sure that the print URL is formed properly.
+
+echo $_SERVER['REQUEST_URI']; 
+if(stristr($_SERVER['REQUEST_URI'], "?") == TRUE){ 
+  echo "&amp;"; 
+} 
+else {
+  echo "?";
+}
+?>view=printable">printable</a>&nbsp;
     </div>
 

@@ -1,16 +1,24 @@
 <?php
-require_once('db_connect.php');
+  /* This script takes a posted value from nav.php (included in every page) and returns 
+    * an unordered list of search results to be updated into a div.
+    */
+    
+  require_once('db_connect.php');
+  
+  $search = $_POST['search_asset'];
+  
+  if(strlen($search) < "3"){ return;} // Prevent infinite loops and other bad stuff.
+  
+  echo "<ul>";
+  
+  $sql = "SELECT asset FROM hardware WHERE asset LIKE '%$search%'";
 
-$search = $_POST['search_asset'];
-if(strlen($search) < "3"){ return;} // Must Prevent Infinite Loops!!!!1 :-)
-echo "<ul>";
-$sql = "SELECT asset FROM hardware WHERE asset LIKE '%$search%'";
-$result = mysql_query($sql);
-while(list($asset) = mysql_fetch_row($result)) { 
-	echo "<li>$asset</li>";
-}
+  $result = mysql_query($sql);
+  
+  while(list($asset) = mysql_fetch_row($result)) { // Probably shouldn't use fetch_row
+    echo "<li>$asset</li>";
+  }
+  
+  echo "</ul>";
 
-echo "</ul>";
 ?>
-</ul>
-
