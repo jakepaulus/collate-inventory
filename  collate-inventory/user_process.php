@@ -31,7 +31,7 @@ function insert(){
   } 
   else {
 
-  require_once('db_connect.php');
+  require_once('include/db_connect.php');
 
   $name = clean($_POST['name']);
   $phone = clean($_POST['phone']);

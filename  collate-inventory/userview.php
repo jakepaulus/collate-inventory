@@ -23,7 +23,7 @@ switch($op){
 	
 function view_details($name){
   $name = $_GET['user_name']; // This needs to be cleaned before it's put into an SQL statement.
-  require_once('db_connect.php');
+  require_once('include/db_connect.php');
   $row = mysql_query("SELECT * FROM users WHERE name='$name'");
 
   if(list($uid,$name,$phone,$altphone,$address,$city,$state,$zip,$email) = mysql_fetch_row($row)) { // User exists, display data
@@ -66,7 +66,7 @@ function view_details($name){
 } // Ends view_details function
 
 function list_users($sort){
-  require_once('db_connect.php');
+  require_once('include/db_connect.php');
   require_once('header.php');
         
   echo "<div id=\"main\"><h1>All Users</h1>";
