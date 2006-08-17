@@ -3,7 +3,7 @@
     * an unordered list of search results to be updated into a div.
     */
     
-  require_once('db_connect.php');
+  require_once('include/db_connect.php');
   
   $search = $_POST['search_asset'];
   
