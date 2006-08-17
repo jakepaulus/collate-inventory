@@ -51,7 +51,7 @@
       <h3>Softare</h3>   
       <div class="inner_box">
         <ul>
-          <li><a href="software.php">Software Home</a></li>
+          <li><a href="software.php">Add Software</a></li>
           <li><a href="software.php?op=something">Other software Link</a></li>
           <li>Search Software:</li>
           <li><input id="search_software" name="search_software" type="text" size="15" /></li>
