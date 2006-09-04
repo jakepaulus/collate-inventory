@@ -28,8 +28,8 @@
       <h3>Hardware</h3>
       <div class="inner_box">
         <ul>
-          <li><a href="hardware.php">Hardware Home</a></li>
-          <li><a href="hardware.php?op=something">Other hardware Link</a></li>
+          <li><a href="hardware.php">Add Hardware</a></li>
+          <li><a href="hardwareview.php?op=view_all">List Hardware</a></li>
           <li>Find Hardware:</li>
           <li><input id="search_asset" name="search_asset" type="text" size="15" /></li>
           <li><input type="submit" value=" Go " /></li>
@@ -52,8 +52,8 @@
       <div class="inner_box">
         <ul>
           <li><a href="software.php">Add Software</a></li>
-          <li><a href="software.php?op=something">Other software Link</a></li>
-          <li>Search Software:</li>
+          <li><a href="softwareview.php?op=list_all">List Software</a></li>
+          <li>Find Software:</li>
           <li><input id="search_software" name="search_software" type="text" size="15" /></li>
           <li><input type="submit" value=" Go " /></li>
         </ul>

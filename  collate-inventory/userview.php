@@ -1,7 +1,20 @@
 <?php
   /* This script shows user information that doesn't require field entered form submission. 
-    * (A form may be used to remove hardware/software from a user's profile... I don't knwo yet.)
+    * (A form may be used to remove hardware/software from a user's profile... I don't know yet.)
     */
+    
+    
+/**
+ * This script contains functionality that will be used by every single page that is displayed.
+ * It builds the CI array, creates the connection to the db that will be used by the rest of the
+ * script, populates $CI['settings'] with settings from the db, and runs Access Control for the
+ * program. 
+ */
+require_once('./include/common.php');
+
+
+
+// The following bit determins what goes in the "main" div.
 
 $op = $_GET['op'];
 
@@ -9,7 +22,7 @@ $op = $_GET['op'];
 if($_GET['sort'])
   $sort = $_GET['sort'];
 else
-  $sort = "name";
+  $sort = "lastname";
 
 switch($op){
   case "view_all";
@@ -17,24 +30,38 @@ switch($op){
     break;
   
   default: // Because the search form is submitted via GET (to make results linkable), the operation can't be directed via GET.
-    view_details($sort);
+    view_details($user_name);
     break;
 }
-	
-function view_details($name){
-  $name = $_GET['user_name']; // This needs to be cleaned before it's put into an SQL statement.
-  require_once('include/db_connect.php');
-  $row = mysql_query("SELECT * FROM users WHERE name='$name'");
 
-  if(list($uid,$name,$phone,$altphone,$address,$city,$state,$zip,$email) = mysql_fetch_row($row)) { // User exists, display data
+// And lastly, we'll need a footer
+include_once('footer.php');
+
+
+// Functions for this page are below
+	
+function view_details($user_name){
+  global $CI;
+  AccessControl("1"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
+ 
+  include_once('header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+
+  $user_name = explode(" ",$_GET['user_name']);
+  $firstname = rtrim($user_name[0]);
+  $lastname = rtrim($user_name[1]);
+
+  require_once('include/db_connect.php');
+  $row = mysql_query("SELECT * FROM users WHERE firstname='$firstname' AND lastname='$lastname'");
+
+  if(list($uid,$firstname,$lastname,$phone,$altphone,$address,$city,$state,$zip,$lid,$email) = mysql_fetch_row($row)) { // User exists, display data
     require_once('header.php');
     echo "<div id=\"main\">".
-	    "<h1>Details for $name:</h1>".
-            "<p>Address:<br />".
+	    "<h1>Details for $firstname $lastname:</h1>".
+            "<p><b>Address:</b><br />".
             "$address <br /> $city, $state $zip</p>".
-            "<p>Telephone Numbers:<br />".
-            "$phone<br />Alternate: $altphone</p>".
-            "<p>Email Address:<br />".
+            "<p><b>Telephone Numbers:</b><br />".
+            "Primary: $phone<br />Alternate: $altphone</p>".
+            "<p><b>Email Address:</b><br />".
             "<a href=\"mailto:$email\">$email</a>";
 	 
     //Display hardware that belongs to the user:
@@ -66,11 +93,11 @@ function view_details($name){
 } // Ends view_details function
 
 function list_users($sort){
-  require_once('include/db_connect.php');
-  require_once('header.php');
-        
-  echo "<div id=\"main\"><h1>All Users</h1>";
-      
+  global $CI;
+  AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
+  
+  include_once('header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+          
   $limit = "25";    // This is the number of rows per page to be displayed. 
 	               //This could be user-configurable, but I'm leaning away from it as it seem unnecessary.   
   $query_count   = "SELECT * FROM users";
@@ -86,7 +113,14 @@ function list_users($sort){
   }
 
   $limitvalue = $page * $limit - ($limit); 
-  $query  = "SELECT * FROM users ORDER BY '$sort' ASC LIMIT $limitvalue, $limit";        
+  
+  if($_GET['view'] == "printable"){ // This way, if you print, all users show up...I just hope they know what they're doing when they click print.
+    $query = "SELECT * FROM users ORDER by '$sort' ASC";
+  }
+  else {
+    $query  = "SELECT * FROM users ORDER BY '$sort' ASC LIMIT $limitvalue, $limit";
+  }
+  
   $result = mysql_query($query); 
 
   if(mysql_num_rows($result) == 0){
@@ -94,71 +128,77 @@ function list_users($sort){
     require_once('infopage.php');
     return;
   }
+  else {
+        
+    require_once('header.php');
+    echo "<div id=\"main\"><h1>All Users</h1>";
 
-  $bgcolor = "#E0E0E0"; // light gray
+    $bgcolor = "#E0E0E0"; // light gray
   
-  echo "<table>".
-         "<tr><th><a href=userview.php?op=view_all&sort=name>Name</a></th>".
-         "<th><a href=userview.php?op=view_all&sort=city>City</th></a>".
-         "<th><a href=userview.php?op=view_all&sort=email>Email Address</th></a></tr>";
+    echo "<table width=\"75%\">".
+           "<tr><th><a href=userview.php?op=view_all&sort=name>Name</a></th>".
+           "<th><a href=userview.php?op=view_all&sort=city>City</th></a>".
+           "<th><a href=userview.php?op=view_all&sort=email>Email Address</th></a></tr>";
     
-  while(list($uid,$name,$phone,$altphone,$address,$city,$state,$zip,$email) = mysql_fetch_row($result)){
-    if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
-      $bgcolor = "#FFFFFF";
+    while(list($uid,$firstname, $lastname,$phone,$altphone,$address,$city,$state,$zip,$lid,$email) = mysql_fetch_row($result)){
+      if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
+        $bgcolor = "#FFFFFF";
+      }
+      else {
+        $bgcolor = "#E0E0E0";
+      }
+      echo "<tr bgcolor=\"$bgcolor\"><td width=\"25%\"><a href=\"userview.php?user_name=$firstname $lastname\">$firstname $lastname</a></td><td width=\"25%\">$city</td><td width=\"25%\"><a href=\"$email\">$email</a></td></tr>";
     }
-    else {
-      $bgcolor = "#E0E0E0";
-    }
-    echo "<tr bgcolor=\"$bgcolor\"><td><a href=\"userview.php?user_name=$name\">$name</a></td><td>$city</td><td><a href=\"$email\">$email</a></td></tr>";
-  }
   
-  echo("</table>");
+    echo("</table>");
   
-  if($page != "1"){ // Generate "Prev" link if there are previous pages to display.
-    $pageprev = $page - "1";
-    echo("<a href=\"userview.php?op=view_all&amp;page=$pageprev\"> Prev</a> "); 
-  }
+    if($_GET['view'] != "printable") {  
+      if($page != "1"){ // Generate "Prev" link if there are previous pages to display.
+        $pageprev = $page - "1";
+        echo("<a href=\"userview.php?op=view_all&amp;page=$pageprev\"> Prev</a> "); 
+      }
   
-  $i = "1";
+      $i = "1";
   
-  if($page > $i){  // List all page numbers as links up to the current page if the page is after page 1.
-    while($i < $page){
-      echo " <a href=\"userview.php?op=view_all&amp;page=$i\">$i</a> ";
-      $i++;
-    }
-  }
-  if($numofpages > "1"){ // Only display the current page number if there is more than one page. 
-    echo $page;
-  }
-  $i = $page + "1";
-  if($numofpages-$page > "0"){ // Display all page numbers after the current page.
-    while($i < $numofpages + "1"){
-      echo " <a href=\"userview.php?op=view_all&amp;page=$i\">$i</a> ";
-      $i++;
-    }
-  }
+      if($page > $i){  // List all page numbers as links up to the current page if the page is after page 1.
+        while($i < $page){
+          echo " <a href=\"userview.php?op=view_all&amp;page=$i\">$i</a> ";
+          $i++;
+        }
+      }
+      if($numofpages > "1"){ // Only display the current page number if there is more than one page. 
+         echo $page;
+      }
+      $i = $page + "1";
+      if($numofpages-$page > "0"){ // Display all page numbers after the current page.
+        while($i < $numofpages + "1"){
+          echo " <a href=\"userview.php?op=view_all&amp;page=$i\">$i</a> ";
+          $i++;
+        }
+      }
     
-  if($page <= $numofpages){ // Display "Next" link if there is a page after the current one.
-    $nextpage = $page + "1";
-    echo " <a href=\"userview.php?op=view_all&amp;page=$nextpage\">Next</a>";
-  }
+      if($page <= $numofpages){ // Display "Next" link if there is a page after the current one.
+        $nextpage = $page + "1";
+        echo " <a href=\"userview.php?op=view_all&amp;page=$nextpage\">Next</a>";
+     }
   
-  if($limitvalue + $limit < $totalrows){ 
-    $upperlimit = $limitvalue + $limit;
-  }
-  else {
-    $upperlimit = $totalrows;
-  }
+      if($limitvalue + $limit < $totalrows){ 
+        $upperlimit = $limitvalue + $limit;
+      }
+      else {
+        $upperlimit = $totalrows;
+      }
     
-  if($limitvalue == "0"){ // The program is happy to start counting with 0, humans aren't.
-    $lowerlimit = "1";
-  }
-  else {
-    $lowerlimit = $limitvalue + "1";
-  }
-  echo "<br /><br />Showing $lowerlimit - $upperlimit out of $totalrows";
-  echo "</div>";
-  require_once('footer.php');
-  
+      if($limitvalue == "0"){ // The program is happy to start counting with 0, humans aren't.
+        $lowerlimit = "1";
+      }
+      else {
+        $lowerlimit = $limitvalue + "1";
+      }
+    }
+    echo "<br /><br />Showing $lowerlimit - $upperlimit out of $totalrows";
+    echo "</div>";
+    require_once('footer.php');
+  } 
 } // Ends list_users function
 ?>

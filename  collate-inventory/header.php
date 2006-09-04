@@ -12,17 +12,16 @@
     <meta name="keywords" content="hardware,software,inventory,users" />
    
 <?php 
-// Make sure we supply the correct css for the view the user is requesting and we don't load those libraries if we don't have to.
+echo $extrameta;
 
+// Make sure we supply the correct css for the view the user is requesting and we don't load those libraries if we don't have to.
 if($_GET['view'] == "printable"){ ?>
 <link rel="stylesheet" type="text/css" href="css/print.css" />
 <?php } else { ?>
 <link rel="stylesheet" type="text/css" href="css/bluesky.css" />
 <script src="javascripts/prototype.js" type="text/javascript"></script>
 <script src="javascripts/scriptaculous.js" type="text/javascript"></script>
-<?php } 
-
-?>
+<?php } ?>
 
 </head>
 <body id="collate-inventory">

@@ -11,12 +11,12 @@
   
   echo "<ul>";
   
-  $sql = "SELECT name FROM users WHERE name LIKE '%$search%'";
+  $sql = "SELECT firstname,lastname FROM users WHERE firstname LIKE '%$search%' OR lastname LIKE '%$search%'";
   
   $result = mysql_query($sql);
   
-  while(list($name) = mysql_fetch_row($result)) { 
-    echo "<li>$name</li>";
+  while(list($firstname, $lastname) = mysql_fetch_row($result)) { 
+    echo "<li>$firstname $lastname</li>";
   }
 
   echo "</ul>";

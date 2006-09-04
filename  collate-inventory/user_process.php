@@ -20,7 +20,8 @@ function clean($variable){
 }
 
 function insert(){
-  if (strlen($_POST['name']) < "3" || 
+  if (strlen($_POST['firstname']) < "3" || 
+      strlen($_POST['lastname']) < "3" ||
       strlen($_POST['address']) < "5" || 
       strlen($_POST['city']) < "3" || 
       strlen($_POST['state']) < "2" || 
@@ -33,7 +34,8 @@ function insert(){
 
   require_once('include/db_connect.php');
 
-  $name = clean($_POST['name']);
+  $firstname = clean($_POST['firstname']);
+  $lastname = clean($_POST['lastname']);
   $phone = clean($_POST['phone']);
   $altphone = clean($_POST['altphone']);
   $address = clean($_POST['address']);
@@ -42,7 +44,7 @@ function insert(){
   $zip = clean($_POST['zip']);
   $email = clean($_POST['email']);
 
-  $sql = "INSERT INTO users (uid, name, phone, altphone, address, city, state, zip, email) VALUES(NULL, '$name', '$phone', '$altphone', '$address', '$city', '$state', '$zip', '$email')";
+  $sql = "INSERT INTO users (uid, firstname, lastname, phone, altphone, address, city, state, zip, email) VALUES(NULL, '$firstname', '$lastname', '$phone', '$altphone', '$address', '$city', '$state', '$zip', '$email')";
 
   $result = mysql_query($sql);
 

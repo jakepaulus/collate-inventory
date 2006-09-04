@@ -29,8 +29,10 @@ function add_user(){
 ?>
   <h1>Add a user:</h1>
   <form name="new_user" action="user_process.php?op=new" method="post">
-    <p>Name:<br />
-    <input id="name" name="name" type="text" size="" /></p>
+    <p>First Name:<br />
+    <input id="firstname" name="firstname" type="text" size="" /></p>
+    <p>Last Name:<br />
+    <input id="lastname" name="lastname" type="text" size="" /></p>
     <p>Telephone Number:<br />
     <input id="phone" name="phone" type="text" size="" /></p>
     <p>Alt. Telephone Number: (optional)<br />

@@ -13,7 +13,10 @@
       <p> 
       With this application you can easily organize your hardware and software inventory. This application runs great locally for a 
       single user or on a network with multiple users.
-      </p>	
+      </p>
+      
+    <h3>Configure this application</h3>
+      <p>Click <a href="settings.php">here</a> to change this application's <a href="settings.php">settings</a>.</p>  
       
 </div>
 <?php require_once('footer.php'); ?>

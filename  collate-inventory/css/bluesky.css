@@ -67,17 +67,17 @@ body {
     display: inline;
     float: left; 
     position: relative; 
-    font-size: 0.8em;
+    font-size: 0.9em;
 }
 
 div.left_nav ul {
     list-style-type: none;
-    padding: 0.5em 0em 0.9em 0em;
+    padding: 0.0em 0em 0.9em 0em;
 }
 
 div.left_nav ul li {
-    padding: 0.2em 0em 0.2em 0.9em;
-    margin-right: 0.3em;
+    padding: 0.4em 0.0em 0.0em 0.4em;
+    margin-right: 0.0em;
 }
 
 
@@ -85,14 +85,14 @@ div.left_nav {
     background-color: #fff;
     width: 20%;
 
-    border-right: 0.18em solid #4284B5;
-    border-bottom: 0.16em solid #4284B5;
-
+    border-right: 0.1em solid #4284B5;
+    border-bottom: 0.5em solid #4284B5;
+font-size: 0.95em;
 }
 
 div.left_nav h3, div#nav h3 {
     margin: 0em;
-    padding: 0.2em 0em 0.2em 1em;
+    padding: 0.1em 0em 0.2em .5em;
     font-size: 0.8em;
     color: #fff;
     border-top: 0.1em solid #65B6E3;   
@@ -103,20 +103,29 @@ div.left_nav h3, div#nav h3 {
 }
 
 div.left_nav p {
+font-size: .9em;
     margin: 0em;
     padding: 1em 1em 1em 1em;
 }
 
 div.left_nav a:link {
-    color: #2E668B;
+    color: #4284b5;
+    font-size: 0.9em;
 }
+
+div.inner_nav a:link {
+    color: #000;
+}
+
     
 div.left_nav a:visited {
-    color: #254A65; 
+    color: #000; 
+font-size: .9em;
 }
  
 div.left_nav a:hover, div.left_box a:active {
     color: #000;
+font-size: .9em;
 }
 
 div.inner_nav {
@@ -131,20 +140,26 @@ div.autocomplete {
       border:1px solid #888;
       margin:0px;
       padding:0px;
+font-size: .9em;
 }
 
 div.autocomplete ul {
       list-style-type:none;
       margin:0px;
       padding:0px;
+font-size: .9em;
 }
-div.autocomplete ul li.selected { background-color: #ffb;}
+div.autocomplete ul li.selected { 
+background-color: #a5ddf8;
+font-size: .9em;
+}
 div.autocomplete ul li {
       list-style-type:none;
       display:block;
       margin:0;
       padding:2px;
       cursor:pointer;
+font-size: .9em;
 }
 
 /* content column: */
