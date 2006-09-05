@@ -1,0 +1,3 @@
+checklevel1perms (binary)
+checklevel3perms (binary)
+checklevel5perms (binary)
