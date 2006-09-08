@@ -1,6 +1,14 @@
 <?php
 
 
+/**
+ * This script contains functionality that will be used by every single page that is displayed.
+ * It builds the CI array, creates the connection to the db that will be used by the rest of the
+ * script, populates $CI['settings'] with settings from the db, and runs Access Control for the
+ * program. 
+ */
+require_once('./include/common.php');
+
 $op = $_GET['op'];
 
 switch($op){
@@ -22,10 +30,14 @@ function clean($variable){
 }
 
 function insert_software(){
+  global $CI;
+  AccessControl("3"); // The access level required for this function is 3. Please see the documentation for this function in common.php.
+  include_once('./header.php');
+  
   if (strlen($_POST['title']) < "1" || 
       strlen($_POST['desc']) < "1" || 
-      strlen($_POST['value']) < "1" || 
       strlen($_POST['total']) < "1" || 
+      strlen($_POST['value']) < "1" || 
       strlen($_POST['inuse']) < "1") { 
     $result = "All fields except are required. Please go back and try again."; 
     require_once('infopage.php'); 
@@ -33,21 +45,19 @@ function insert_software(){
   } 
   else {
 
-  require_once('include/db_connect.php');
-
   $title = clean($_POST['title']);
-  $desc = clean($_POST['desc']);
+  $description = clean($_POST['desc']);
   $value = clean($_POST['value']);
   $total = clean($_POST['total']);
-  $available = abs($total - clean($_POST['inuse']));
+  $available = abs($total - $_POST['inuse']);
   
   if(!is_numeric($value)){
     $result = "\"$value\" contains more than just numbers. Please only enter numbers for the value.";
     require_once('infopage.php');
-    return;
+    exit();
   } 
   
-  $sql = "INSERT INTO softwares (sid, title, description, value, total, available) VALUES(NULL, '$title', '$desc', $value, $total, $available)"; // "desc" is special in SQL.
+  $sql = "INSERT INTO softwares (sid, title, description, value, total, available) VALUES(NULL, '$title', '$description', '$value', '$total', '$available')";
 
   $result = mysql_query($sql);
 

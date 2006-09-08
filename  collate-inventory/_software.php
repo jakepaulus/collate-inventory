@@ -5,7 +5,7 @@
 
   require_once('include/db_connect.php');
 
-  $search = $_POST['search_software'];
+  $search = $_POST['software_title'];
 
   if(strlen($search) < "3"){ return;} // Prevent infinite loops and other bad stuff.
   

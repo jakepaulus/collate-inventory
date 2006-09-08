@@ -14,48 +14,50 @@ $op = $_GET['op'];
 if($_GET['sort'])
   $sort = $_GET['sort'];
 else
-  $sort = "hcat";
+  $sort = "title";
 
 switch($op){
   case "view_all";
-    list_hardwares($sort);
+    list_softwares($sort);
     break;
   
-  default:
-    view_details($search);
+  default: // Because the search form is submitted via GET (to make results linkable), the operation can't be directed via GET.
+    view_details($title);
     break;
 }
-
 
 // And lastly, we'll need a footer
 include_once('footer.php');
 
-
-
-function view_details($search){
+function view_details($title){
   global $CI;
   AccessControl("1"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
  
   include_once('header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
   
-  $search = $_GET['search'];
-  $row = mysql_query("SELECT * FROM hardwares WHERE asset='$search' OR serial='$search'");
+  $title = $_GET['software_title'];
+  $row = mysql_query("SELECT * FROM softwares WHERE title='$title'");
 
-  if(list($hid,$catid,$asset,$serial,$description,$value) = mysql_fetch_row($row)) { // User exists, display data
-   echo "<div id=\"main\">".
-	    "<h1>Details for Asset: $asset:</h1>".
+  if(list($sid,$title,$description,$value,$total,$available) = mysql_fetch_row($row)) { // User exists, display data
+    $deployedvalue = $value * ($total - $available);
+    $totalvalue = $value * $total;
+    $deployed = $total - $available;
+    echo "<div id=\"main\">".
+	    "<h1>Details for $title:</h1>".
             "<p><b>Description:</b><br />".
             "$description</p>".
             "<p><b>Other Details:</b><br />".
-            "Serial Number: $serial <br /> Value: $value </p>";
+            "Cost Per license: $cost <br /> Value of deployed software: $deployedvalue <br /> Value of all licenses: $totalvalue <br />".
+            "Licenses in use: $deployed <br /> Licenses available: $available </p>";
   }
-    // Display the history of this hardware
+    // Display the usernames of those who have licenses checked out
     echo "<h1>Good Title:</h1>".
            "</div>";
     
 } // Ends view_details function
 
-function list_hardwares($sort){
+
+function list_softwares($sort){
   global $CI;
   AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
   
@@ -63,7 +65,7 @@ function list_hardwares($sort){
           
   $limit = "25";    // This is the number of rows per page to be displayed. 
 	               //This could be user-configurable, but I'm leaning away from it as it seem unnecessary.   
-  $query_count   = "SELECT * FROM hardwares";
+  $query_count   = "SELECT * FROM softwares";
   $result_count   = mysql_query($query_count);    
   $totalrows       = mysql_num_rows($result_count);
   $numofpages   = round($totalrows/$limit, 0);  // This rounds the division result up to the nearest whole number.
@@ -78,38 +80,37 @@ function list_hardwares($sort){
   $limitvalue = $page * $limit - ($limit); 
   
   if($_GET['view'] == "printable"){ // This way, if you print, all users show up...I just hope they know what they're doing when they click print.
-    $query = "SELECT * FROM hardwares ORDER by '$sort' ASC";
+    $query = "SELECT * FROM softwares ORDER by '$sort' ASC";
   }
   else {
-    $query  = "SELECT * FROM hardwares ORDER BY '$sort' ASC LIMIT $limitvalue, $limit";
+    $query  = "SELECT * FROM softwares ORDER BY '$sort' ASC LIMIT $limitvalue, $limit";
   }
   
  $result = mysql_query($query); 
 
   if(mysql_num_rows($result) == 0){
-    $result = "No hardware assets were found in the database. Please click \"Add Hardware\" on the left to add assets to the database.";
+    $result = "No software titles were found in the database. Please click \"Add Software\" on the left to add software titles.";
     require_once('./infopage.php');
     exit();
   }
   else {
-    echo "<div id=\"main\"><h1>All Hardware Assets</h1>";
+    echo "<div id=\"main\"><h1>All Software Titles</h1>";
 
     $bgcolor = "#E0E0E0"; // light gray
   
     echo "<table width=\"100%\">".
-           "<tr><th align=\"left\"><a href=hardwareview.php?op=view_all&sort=hcat>Category</a></th>".
-	   "<th align=\"left\"><a href=hardwareview.php?op=view_all&sort=deployed>Deployed?</a></th>".
-           "<th align=\"left\"><a href=hardwareview.php?op=view_all&sort=asset>Asset Number</th></a>".
-           "<th align=\"left\"><a href=hardwareview.php?op=view_all&sort=serial>Serial Number</th></a></tr>";
+           "<tr><th align=\"left\"><a href=softwareview.php?op=view_all&sort=title>Title</a></th>".
+           "<th align=\"left\"><a href=softwareview.php?op=view_all&sort=available>Available Licenses</th></a>".
+           "<th align=\"left\"><a href=softwareview.php?op=view_all&sort=total>Total Licenses</th></a></tr>";
     
-    while(list($hid,$catid,$asset,$serial,$description,$value) = mysql_fetch_row($result)){
+    while(list($sid,$title,$description,$value,$total,$available) = mysql_fetch_row($result)){
       if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
         $bgcolor = "#FFFFFF";
       }
       else {
         $bgcolor = "#E0E0E0";
       }
-      echo "<tr bgcolor=\"$bgcolor\"><td width=\"25%\">[Category]</td><td width=\"25%\">[Deployed?]</td><td width=\"25%\"><a href=\"hardwareview.php?op=view_details&search=$asset\">$asset</a></td><td width=\"25%\">$serial</td></tr>";
+      echo "<tr bgcolor=\"$bgcolor\"><td width=\"25%\"><a href=\"softwareview.php?software_title=$title\">$title</a></td><td width=\"25%\">$available</td><td width=\"25%\">$total</td></tr>";
     }
   
     echo("</table>");
@@ -164,6 +165,6 @@ function list_hardwares($sort){
     }
     echo "</div>";
   } 
-} // Ends list_hardwares function
+} // Ends list_softwares function
 
 ?>

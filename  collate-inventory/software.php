@@ -3,13 +3,18 @@
   * in this script and data is submitted to user_process.php before it hits the database.
   */
 
+/**
+ * This script contains functionality that will be used by every single page that is displayed.
+ * It builds the CI array, creates the connection to the db that will be used by the rest of the
+ * script, populates $CI['settings'] with settings from the db, and runs Access Control for the
+ * program. 
+ */
+require_once('./include/common.php');
+
+
 $op = $_GET['op'];
 
 switch($op){
-	case "edit";
-	edit_software();
-	break;
-
 	default:
 	add_software();
 	break;
@@ -37,9 +42,5 @@ function add_software(){
 <?php
   echo "</div>";
   require_once('footer.php');
-}
-
-function edit_user(){
-// Display pre-populated form that posts to software_process.php
 }
 ?>

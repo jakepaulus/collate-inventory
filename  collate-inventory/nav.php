@@ -7,7 +7,7 @@
         <ul>
           <li><a href="user.php">Add User</a></li>
           <li><a href="userview.php?op=view_all">List Users</a></li>
-          <li>Find User:</li>
+          <li>User Name:</li>
           <li><input id="user_name" name="user_name" type="text" size="15" /></li>
           <li><input type="submit" value=" Go " /></li>
         </ul>
@@ -23,45 +23,36 @@
 
   &nbsp; 
 
-  <form action="hardware.php?op=view" method="get">
-    <div class="left_nav">
-      <h3>Hardware</h3>
-      <div class="inner_box">
-        <ul>
-          <li><a href="hardware.php">Add Hardware</a></li>
-          <li><a href="hardwareview.php?op=view_all">List Hardware</a></li>
-          <li>Find Hardware:</li>
-          <li><input id="search_asset" name="search_asset" type="text" size="15" /></li>
-          <li><input type="submit" value=" Go " /></li>
-        </ul>
-      </div>
-      <div id="search_assetupdate" class="autocomplete"></div>
-      <script type="text/javascript" charset="utf-8">
-      // <![CDATA[
-        new Ajax.Autocompleter('search_asset','search_assetupdate','_hardware.php');
-      // ]]>
-      </script>
+  <div class="left_nav">
+    <h3>Hardware</h3>
+    <div class="inner_box">
+      <ul>
+        <li><a href="hardware.php">Add Hardware</a></li>
+        <li><a href="hardwareview.php?op=view_all">List Hardware</a></li>
+        <li><a href="hardwaresearch.php">Search Hardware</a></li>
+      </ul>
     </div>
-  </form>
+  </div>
+
 
   &nbsp;   
 
-  <form action="hardware.php?op=view" method="post">
+  <form action="softwareview.php" method="get">
     <div class="left_nav">
       <h3>Softare</h3>   
       <div class="inner_box">
         <ul>
           <li><a href="software.php">Add Software</a></li>
-          <li><a href="softwareview.php?op=list_all">List Software</a></li>
-          <li>Find Software:</li>
-          <li><input id="search_software" name="search_software" type="text" size="15" /></li>
+          <li><a href="softwareview.php?op=view_all">List Software</a></li>
+          <li>Software Title:</li>
+          <li><input id="software_title" name="software_title" type="text" size="15" /></li>
           <li><input type="submit" value=" Go " /></li>
         </ul>
       </div>
-      <div id="search_softwareupdate" class="autocomplete"></div>
+      <div id="software_titleupdate" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
       // <![CDATA[
-        new Ajax.Autocompleter('search_software','search_softwareupdate','_software.php');
+        new Ajax.Autocompleter('software_title','software_titleupdate','_software.php');
       // ]]>
       </script>
     </div>

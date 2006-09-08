@@ -13,9 +13,6 @@
 require_once('./include/common.php');
 
 
-
-// The following bit determins what goes in the "main" div.
-
 $op = $_GET['op'];
 
 // make sure a sort variable is passed or set it to sort my name
@@ -129,16 +126,15 @@ function list_users($sort){
     return;
   }
   else {
-        
-    require_once('header.php');
-    echo "<div id=\"main\"><h1>All Users</h1>";
+
+  echo "<div id=\"main\"><h1>All Users</h1>";
 
     $bgcolor = "#E0E0E0"; // light gray
   
     echo "<table width=\"75%\">".
-           "<tr><th><a href=userview.php?op=view_all&sort=name>Name</a></th>".
-           "<th><a href=userview.php?op=view_all&sort=city>City</th></a>".
-           "<th><a href=userview.php?op=view_all&sort=email>Email Address</th></a></tr>";
+           "<tr><th align=\"left\"><a href=userview.php?op=view_all&sort=name>Name</a></th>".
+           "<th align=\"left\"><a href=userview.php?op=view_all&sort=city>City</th></a>".
+           "<th align=\"left\"><a href=userview.php?op=view_all&sort=email>Email Address</th></a></tr>";
     
     while(list($uid,$firstname, $lastname,$phone,$altphone,$address,$city,$state,$zip,$lid,$email) = mysql_fetch_row($result)){
       if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
@@ -196,9 +192,10 @@ function list_users($sort){
         $lowerlimit = $limitvalue + "1";
       }
     }
-    echo "<br /><br />Showing $lowerlimit - $upperlimit out of $totalrows";
+    if($_GET['view'] != "printable"){
+      echo "<br /><br />Showing $lowerlimit - $upperlimit out of $totalrows";
+    }
     echo "</div>";
-    require_once('footer.php');
   } 
 } // Ends list_users function
 ?>
