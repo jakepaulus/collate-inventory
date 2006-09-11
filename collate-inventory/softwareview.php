@@ -98,9 +98,9 @@ function list_softwares(){
     echo "<div id=\"main\"><h1>All Software Titles</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
     echo "<table width=\"100%\">\n".
-            "<tr><th align=\"left\"><a href=softwareview.php?op=view_all&sort=title>Title</a></th>".
-            "<th align=\"left\"><a href=softwareview.php?op=view_all&sort=available>Available Licenses</th></a>".
-            "<th align=\"left\"><a href=softwareview.php?op=view_all&sort=total>Total Licenses</th></a></tr>\n";
+            "<tr><th align=\"left\"><a href=\"softwareview.php?op=view_all&amp;sort=title\">Title</a></th>".
+            "<th align=\"left\"><a href=\"softwareview.php?op=view_all&amp;sort=available\">Available Licenses</a></th>".
+            "<th align=\"left\"><a href=\"softwareview.php?op=view_all&amp;sort=total\">Total Licenses</a></th></tr>\n";
     
     while(list($title,$total,$available) = mysql_fetch_row($result)){
       if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
@@ -109,29 +109,29 @@ function list_softwares(){
       else {
         $bgcolor = "#E0E0E0";
       }
-      echo "<tr bgcolor=\"$bgcolor\"><td width=\"25%\"><a href=\"softwareview.php?software_title=$title\">$title</a></td><td width=\"25%\">$available</td><td width=\"25%\">$total</td></tr>\n";
+      echo "<tr bgcolor=\"$bgcolor\"><td><a href=\"softwareview.php?software_title=$title\">$title</a></td><td>$available</td><td>$total</td></tr>\n";
     }
     echo("</table>");
   
  if(($_GET['show'] != "all") && ($numofpages > "1")) {
       if($page != "1") { // Generate Prev link only if previous pages exist.
         $pageprev = $page - "1";
-	echo "<a href=\"softwareview.php?op=view_all&page=$pageprev\"> Prev </a>";
+	echo "<a href=\"softwareview.php?op=view_all&amp;page=$pageprev\"> Prev </a>";
       }
       $i = "1";
       while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"softwareview.php?op=view_all&page=$i\"> $i </a>";
+        echo "<a href=\"softwareview.php?op=view_all&amp;page=$i\"> $i </a>";
 	$i++;
       }
       echo "[$page]"; // List Current page
       $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
       while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"softwareview.php?op=view_all&page=$i\"> $i </a>";
+        echo "<a href=\"softwareview.php?op=view_all&amp;page=$i\"> $i </a>";
         $i++;
       }
       if($page < $numofpages) { // Generate Next link if there is a page after this one
         $nextpage = $page + "1";
-	echo "<a href=\"softwareview.php?op=view_all&page=$nextpage\"> Next </a>";
+	echo "<a href=\"softwareview.php?op=view_all&amp;page=$nextpage\"> Next </a>";
       }
     }
     
@@ -147,7 +147,7 @@ function list_softwares(){
     }
     echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
     if($_GET['show'] != "all") {
-    echo "<a href=\"".$_SERVER['REQUEST_URI']."&show=all\">Show all results on one page</a>";
+    echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
     }
     echo "</div>";
   }  

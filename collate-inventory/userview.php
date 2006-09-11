@@ -23,7 +23,7 @@ else
 
 switch($op){
   case "view_all";
-    list_users($sort);
+    list_users();
     break;
   
   default: // Because the search form is submitted via GET (to make results linkable), the operation can't be directed via GET.
@@ -118,9 +118,9 @@ function list_users(){
     echo "<div id=\"main\">\n<h1>All Users</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
     echo "<table width=\"100%\">\n". // Here we actually build the HTML table
-           "<tr><th align=\"left\"><a href=\"userview.php?op=view_all&sort=lastname\">Name</a></th>".
-	   "<th align=\"left\"><a href=\"userview.php?op=view_all&sort=city\">City</a></th>".
-	   "<th align=\"left\"><a href=\"userview.php?op=view_all&sort=email\">Email</a></th></tr>\n";
+           "<tr><th align=\"left\"><a href=\"userview.php?op=view_all&amp;sort=lastname\">Name</a></th>".
+	   "<th align=\"left\"><a href=\"userview.php?op=view_all&amp;sort=city\">City</a></th>".
+	   "<th align=\"left\"><a href=\"userview.php?op=view_all&amp;sort=email\">Email</a></th></tr>\n";
     
     while(list($firstname,$lastname,$city,$email) = mysql_fetch_row($result)) { 
       if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
@@ -129,29 +129,29 @@ function list_users(){
       else {
         $bgcolor = "#E0E0E0";
       }
-      echo "<tr bgcolor=\"$bgcolor\"><td width=\"33%\"><a href=\"userview.php?op=view_details&user_name=$firstname $lastname\">$firstname $lastname</a></td><td width=\"33%\">$city</td><td width=\"33%\"><a href=\"mailto:$email\">$email</a></td></tr>\n";
+      echo "<tr bgcolor=\"$bgcolor\"><td><a href=\"userview.php?op=view_details&amp;user_name=$firstname $lastname\">$firstname $lastname</a></td><td>$city</td><td><a href=\"mailto:$email\">$email</a></td></tr>\n";
     }
     echo "</table>"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
     
     if(($_GET['show'] != "all") && ($numofpages > "1")) {
       if($page != "1") { // Generate Prev link only if previous pages exist.
         $pageprev = $page - "1";
-	echo "<a href=\"userview.php?op=view_all&page=$pageprev\"> Prev</a>";
+	echo "<a href=\"userview.php?op=view_all&amp;page=$pageprev\"> Prev</a>";
       }
       $i = "1";
       while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"userview.php?op=view_all&page=$i\">$i</a>";
+        echo "<a href=\"userview.php?op=view_all&amp;page=$i\">$i</a>";
 	$i++;
       }
       echo "[$page]"; // List Current page
       $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
       while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"userview.php?op=view_all&page=$i\"> $i </a>";
+        echo "<a href=\"userview.php?op=view_all&amp;page=$i\"> $i </a>";
         $i++;
       }
       if($page < $numofpages) { // Generate Next link if there is a page after this one
         $nextpage = $page + "1";
-	echo "<a href=\"userview.php?op=view_all&page=$nextpage\"> Next </a>";
+	echo "<a href=\"userview.php?op=view_all&amp;page=$nextpage\"> Next </a>";
       }
     }
     
@@ -167,7 +167,7 @@ function list_users(){
     }
     echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
     if($_GET['show'] != "all") {
-    echo "<a href=\"".$_SERVER['REQUEST_URI']."&show=all\">Show all results on one page</a>";
+    echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
     }
     echo "</div>";
   }  

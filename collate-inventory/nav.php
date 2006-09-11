@@ -1,5 +1,4 @@
 <div class="left">
-
   <form action="userview.php" method="get">
     <div class="left_nav">
       <h3>Users</h3>
@@ -20,22 +19,28 @@
       </script>
     </div>
   </form>
-
   &nbsp; 
-
-  <div class="left_nav">
-    <h3>Hardware</h3>
-    <div class="inner_box">
-      <ul>
-        <li><a href="hardware.php">Add Hardware</a></li>
-        <li><a href="hardwareview.php?op=view_all">List Hardware</a></li>
-      </ul>
+  <form action="hardwareview.php" method="get">
+    <div class="left_nav">
+      <h3>Hardware</h3>
+      <div class="inner_box">
+        <ul>
+          <li><a href="hardware.php">Add Hardware</a></li>
+          <li><a href="hardwareview.php?op=view_all">List Hardware</a></li>
+	<li>Asset/Serial Number:</li>
+          <li><input id="search" name="search" type="text" size="15" /></li>
+          <li><input type="submit" value=" Go " /></li>
+        </ul>
+      </div>
+      <div id="search_update" class="autocomplete"></div>
+      <script type="text/javascript" charset="utf-8">
+      // <![CDATA[
+        new Ajax.Autocompleter('search','search_update','_hardware.php');
+      // ]]>      
+     </script>
     </div>
-  </div>
-
-
+  </form>
   &nbsp;   
-
   <form action="softwareview.php" method="get">
     <div class="left_nav">
       <h3>Softare</h3>   
@@ -56,6 +61,5 @@
       </script>
     </div>
   </form>
-
 </div>
 

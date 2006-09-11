@@ -11,7 +11,7 @@ $op = $_GET['op'];
 
 switch($op){
   case "view_all";
-    list_hardwares($sort);
+    list_hardwares();
     break;
   
   default:
@@ -93,9 +93,9 @@ function list_hardwares(){
     echo "<div id=\"main\">\n<h1>All Hardware Assets</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
     echo "<table width=\"100%\">\n". // Here we actually build the HTML table
-           "<tr><th align=\"left\"><a href=\"hardwareview.php?op=view_all&sort=category\">Category</a></th>".
-	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&sort=asset\">Asset Number</a></th>".
-	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&sort=serial\">Serial Number</a></th></tr>\n";
+           "<tr><th align=\"left\"><a href=\"hardwareview.php?op=view_all&amp;sort=category\">Category</a></th>".
+	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&amp;sort=asset\">Asset Number</a></th>".
+	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&amp;sort=serial\">Serial Number</a></th></tr>\n";
     
     while(list($hid,$category,$asset,$serial) = mysql_fetch_row($result)) { 
       if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
@@ -104,7 +104,7 @@ function list_hardwares(){
       else {
         $bgcolor = "#E0E0E0";
       }
-      echo "<tr bgcolor=\"$bgcolor\"><td width=\"33%\"><a href=\"hardwareview.php?op=view_details&search=$serial\">$category</a></td><td width=\"33%\">$asset</td><td width=\"33%\">$serial</td></tr>\n";
+      echo "<tr bgcolor=\"$bgcolor\"><td><a href=\"hardwareview.php?op=view_details&amp;search=$serial\">$category</a></td><td>$asset</td><td>$serial</td></tr>\n";
     }
     echo "</table>"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
   }
@@ -112,22 +112,22 @@ function list_hardwares(){
     if(($_GET['show'] != "all") && ($numofpages > "1")) {
       if($page != "1") { // Generate Prev link only if previous pages exist.
         $pageprev = $page - "1";
-	echo "<a href=\"hardwareview.php?op=view_all&page=$pageprev\"> Prev</a>";
+	echo "<a href=\"hardwareview.php?op=view_all&amp;page=$pageprev\"> Prev</a>";
       }
       $i = "1";
       while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"hardwareview.php?op=view_all&page=$i\">$i</a>";
+        echo "<a href=\"hardwareview.php?op=view_all&amp;page=$i\">$i</a>";
 	$i++;
       }
       echo "[$page]"; // List Current page
       $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
       while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"hardwareview.php?op=view_all&page=$i\"> $i </a>";
+        echo "<a href=\"hardwareview.php?op=view_all&amp;page=$i\"> $i </a>";
         $i++;
       }
       if($page < $numofpages) { // Generate Next link if there is a page after this one
         $nextpage = $page + "1";
-	echo "<a href=\"hardwareview.php?op=view_all&page=$nextpage\"> Next </a>";
+	echo "<a href=\"hardwareview.php?op=view_all&amp;page=$nextpage\"> Next </a>";
       }
     }
     
@@ -143,7 +143,7 @@ function list_hardwares(){
     }
     echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
     if($_GET['show'] != "all") {
-    echo "<a href=\"".$_SERVER['REQUEST_URI']."&show=all\">Show all results on one page</a>";
+    echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
     }
     echo "</div>";
 } // Ends list_hardwares function
