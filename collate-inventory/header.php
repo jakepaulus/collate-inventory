@@ -19,8 +19,7 @@ if($_GET['view'] == "printable"){ ?>
 <link rel="stylesheet" type="text/css" href="css/print.css" />
 <?php } else { ?>
 <link rel="stylesheet" type="text/css" href="css/bluesky.css" />
-<script src="javascripts/prototype.js" type="text/javascript"></script>
-<script src="javascripts/scriptaculous.js" type="text/javascript"></script>
+<script src="javascripts/scriptaculous.shrunk.js" type="text/javascript" charset="ISO-8859-1"></script>
 <?php } ?>
 
 </head>
@@ -35,16 +34,16 @@ if($_GET['view'] == "printable"){ ?>
 
         <div id="content">
 	
-<div class="path"><a href="<?php
-// This little mess here make sure that the print URL is formed properly.
+<div class="path"><table width="100%"><tr><td align="left"><a href="search.php">Advanced Search</a></td><td align="right"><a href="<?php
+// This little mess here makes sure that the print URL is formed properly.
 
 echo $_SERVER['REQUEST_URI']; 
 if(stristr($_SERVER['REQUEST_URI'], "?") == TRUE){ 
-  echo "&amp;"; 
+  echo "&"; 
 } 
 else {
   echo "?";
 }
-?>view=printable">printable</a>&nbsp;
+?>view=printable">printable</a>&nbsp;</td></tr></table>
     </div>
 

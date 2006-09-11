@@ -7,14 +7,7 @@
  */
 require_once('./include/common.php');
 
-
 $op = $_GET['op'];
-
-// make sure a sort variable is passed or set it to sort my name
-if($_GET['sort'])
-  $sort = $_GET['sort'];
-else
-  $sort = "hcat";
 
 switch($op){
   case "view_all";
@@ -39,9 +32,9 @@ function view_details($search){
   include_once('header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
   
   $search = $_GET['search'];
-  $row = mysql_query("SELECT * FROM hardwares WHERE asset='$search' OR serial='$search'");
+  $row = mysql_query("SELECT category, asset, serial, description, value FROM hardwares WHERE asset='$search' OR serial='$search'");
 
-  if(list($hid,$catid,$asset,$serial,$description,$value) = mysql_fetch_row($row)) { // User exists, display data
+  if(list($category,$asset,$serial,$description,$value) = mysql_fetch_row($row)) { // User exists, display data
    echo "<div id=\"main\">".
 	    "<h1>Details for Asset: $asset:</h1>".
             "<p><b>Description:</b><br />".
@@ -55,115 +48,104 @@ function view_details($search){
     
 } // Ends view_details function
 
-function list_hardwares($sort){
+function list_hardwares(){
   global $CI;
   AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
   
   include_once('./header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
-          
-  $limit = "25";    // This is the number of rows per page to be displayed. 
-	               //This could be user-configurable, but I'm leaning away from it as it seem unnecessary.   
-  $query_count   = "SELECT * FROM hardwares";
-  $result_count   = mysql_query($query_count);    
-  $totalrows       = mysql_num_rows($result_count);
-  $numofpages   = round($totalrows/$limit, 0);  // This rounds the division result up to the nearest whole number.
+
+  if($_GET['sort']) { // Determinte what to the list by.
+    $sort = $_GET['sort'];
+  }
+  else {
+    $sort = "category";
+  }
   
-  if(empty($_GET['page'])){
+  $limit = "25";
+  $sql = "SELECT MAX(hid) FROM hardwares"; // Determine the number of pages
+  $result_count = mysql_query($sql);
+  $totalrows = mysql_result($result_count, 0, 0);
+  $numofpages = round($totalrows/$limit, 0); // This rounds the division result up to the nearest whole number.
+  
+  if(empty($_GET['page'])) { 
     $page = "1";
   }
   else {
-    $page = $_GET['page']; // As this is never inserted into an SQL statement, it's safe to use without cleaning.
+    $page = $_GET['page']; 
   }
-
-  $limitvalue = $page * $limit - ($limit); 
   
-  if($_GET['view'] == "printable"){ // This way, if you print, all users show up...I just hope they know what they're doing when they click print.
-    $query = "SELECT * FROM hardwares ORDER by '$sort' ASC";
+  $lowerlimit = $page * $limit - $limit;
+  if($_GET['show'] == "all") { // for show all, we really don't want to paginate, but we can still use this function
+    $sql = "SELECT hid, category, asset, serial FROM hardwares ORDER BY $sort ASC";
   }
   else {
-    $query  = "SELECT * FROM hardwares ORDER BY '$sort' ASC LIMIT $limitvalue, $limit";
+    // this is MUCH faster than using a lower limit because the primary key is indexed.
+    $sql = "SELECT hid, category, asset, serial FROM hardwares WHERE hid > $lowerlimit ORDER BY $sort LIMIT $limit"; 
   }
+  $result = mysql_query($sql);
   
- $result = mysql_query($query); 
-
-  if(mysql_num_rows($result) == 0){
-    $result = "No hardware assets were found in the database. Please click \"Add Hardware\" on the left to add assets to the database.";
+  if(mysql_num_rows($result) == "0") {
+    $result = "No database records were found. Please add records using the \"Add..\" links to the left.";
     require_once('./infopage.php');
     exit();
   }
-  else {
-    echo "<div id=\"main\"><h1>All Hardware Assets</h1>";
-
+  else { 
+    echo "<div id=\"main\">\n<h1>All Hardware Assets</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
-  
-    echo "<table width=\"100%\">".
-           "<tr><th align=\"left\"><a href=hardwareview.php?op=view_all&sort=hcat>Category</a></th>".
-	   "<th align=\"left\"><a href=hardwareview.php?op=view_all&sort=deployed>Deployed?</a></th>".
-           "<th align=\"left\"><a href=hardwareview.php?op=view_all&sort=asset>Asset Number</th></a>".
-           "<th align=\"left\"><a href=hardwareview.php?op=view_all&sort=serial>Serial Number</th></a></tr>";
+    echo "<table width=\"100%\">\n". // Here we actually build the HTML table
+           "<tr><th align=\"left\"><a href=\"hardwareview.php?op=view_all&sort=category\">Category</a></th>".
+	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&sort=asset\">Asset Number</a></th>".
+	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&sort=serial\">Serial Number</a></th></tr>\n";
     
-    while(list($hid,$catid,$asset,$serial,$description,$value) = mysql_fetch_row($result)){
+    while(list($hid,$category,$asset,$serial) = mysql_fetch_row($result)) { 
       if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
         $bgcolor = "#FFFFFF";
       }
       else {
         $bgcolor = "#E0E0E0";
       }
-      echo "<tr bgcolor=\"$bgcolor\"><td width=\"25%\">[Category]</td><td width=\"25%\">[Deployed?]</td><td width=\"25%\"><a href=\"hardwareview.php?op=view_details&search=$asset\">$asset</a></td><td width=\"25%\">$serial</td></tr>";
+      echo "<tr bgcolor=\"$bgcolor\"><td width=\"33%\"><a href=\"hardwareview.php?op=view_details&search=$serial\">$category</a></td><td width=\"33%\">$asset</td><td width=\"33%\">$serial</td></tr>\n";
     }
-  
-    echo("</table>");
-  
-    if($_GET['view'] != "printable") {  
-      if($page != "1"){ // Generate "Prev" link if there are previous pages to display.
+    echo "</table>"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
+  }
+    
+    if(($_GET['show'] != "all") && ($numofpages > "1")) {
+      if($page != "1") { // Generate Prev link only if previous pages exist.
         $pageprev = $page - "1";
-        echo("<a href=\"softwareview.php?op=view_all&amp;page=$pageprev\"> Prev</a> "); 
+	echo "<a href=\"hardwareview.php?op=view_all&page=$pageprev\"> Prev</a>";
       }
-  
       $i = "1";
-  
-      if($page > $i){  // List all page numbers as links up to the current page if the page is after page 1.
-        while($i < $page){
-          echo " <a href=\"softwareview.php?op=view_all&amp;page=$i\">$i</a> ";
-          $i++;
-        }
+      while($i < $page) { // Build all page number links up to the current page
+        echo "<a href=\"hardwareview.php?op=view_all&page=$i\">$i</a>";
+	$i++;
       }
-      if($numofpages > "1"){ // Only display the current page number if there is more than one page. 
-         echo $page;
+      echo "[$page]"; // List Current page
+      $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
+      while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
+        echo "<a href=\"hardwareview.php?op=view_all&page=$i\"> $i </a>";
+        $i++;
       }
-      $i = $page + "1";
-      if($numofpages-$page > "0"){ // Display all page numbers after the current page.
-        while($i < $numofpages + "1"){
-          echo " <a href=\"softwareview.php?op=view_all&amp;page=$i\">$i</a> ";
-          $i++;
-        }
-      }
-    
-      if($page <= $numofpages){ // Display "Next" link if there is a page after the current one.
+      if($page < $numofpages) { // Generate Next link if there is a page after this one
         $nextpage = $page + "1";
-        echo " <a href=\"softwareview.php?op=view_all&amp;page=$nextpage\">Next</a>";
-     }
-  
-      if($limitvalue + $limit < $totalrows){ 
-        $upperlimit = $limitvalue + $limit;
-      }
-      else {
-        $upperlimit = $totalrows;
-      }
-    
-      if($limitvalue == "0"){ // The program is happy to start counting with 0, humans aren't.
-        $lowerlimit = "1";
-      }
-      else {
-        $lowerlimit = $limitvalue + "1";
+	echo "<a href=\"hardwareview.php?op=view_all&page=$nextpage\"> Next </a>";
       }
     }
     
-    if($_GET['view'] != "printable"){
-      echo "<br /><br />Showing $lowerlimit - $upperlimit out of $totalrows";
+    // Regardless of how many pages there are, well show how many records there are and what records we're displaying.
+    if($lowerlimit + $limit < $totalrows) {
+      $upperlimit = $lowerlimit + $limit;
+    }
+    else {
+      $upperlimit = $totalrows;
+    }
+    if($lowerlimit == "0") { // The program is happy to start counting with 0, humans aren't.
+      $lowerlimit = "1";
+    }
+    echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
+    if($_GET['show'] != "all") {
+    echo "<a href=\"".$_SERVER['REQUEST_URI']."&show=all\">Show all results on one page</a>";
     }
     echo "</div>";
-  } 
 } // Ends list_hardwares function
 
 ?>

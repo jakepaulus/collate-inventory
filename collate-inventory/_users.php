@@ -11,7 +11,7 @@
   
   echo "<ul>";
   
-  $sql = "SELECT firstname,lastname FROM users WHERE firstname LIKE '%$search%' OR lastname LIKE '%$search%'";
+  $sql = "SELECT firstname, lastname FROM users WHERE firstname LIKE '%$search%' OR lastname LIKE '%$search%'";
   
   $result = mysql_query($sql);
   

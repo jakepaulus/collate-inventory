@@ -29,7 +29,6 @@
       <ul>
         <li><a href="hardware.php">Add Hardware</a></li>
         <li><a href="hardwareview.php?op=view_all">List Hardware</a></li>
-        <li><a href="hardwaresearch.php">Search Hardware</a></li>
       </ul>
     </div>
   </div>

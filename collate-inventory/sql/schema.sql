@@ -39,10 +39,11 @@ CREATE TABLE `hardware` (
 
 CREATE TABLE `hardwares` (
   `hid` int(10) NOT NULL auto_increment,
-  `catid` int(10) NOT NULL,
+  `category` varchar(100) NOT NULL,
   `asset` varchar(255) NOT NULL,
   `serial` varchar(255) NOT NULL,
   `description` text NOT NULL,
+  `deployed` CHAR(1) DEFAULT 'N' NOT NULL,
   `value` varchar(50) NOT NULL,
   PRIMARY KEY  (`hid`),
   UNIQUE KEY `asset` (`asset`),

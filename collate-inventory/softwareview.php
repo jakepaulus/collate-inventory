@@ -10,15 +10,9 @@ require_once('./include/common.php');
 
 $op = $_GET['op'];
 
-// make sure a sort variable is passed or set it to sort my name
-if($_GET['sort'])
-  $sort = $_GET['sort'];
-else
-  $sort = "title";
-
 switch($op){
   case "view_all";
-    list_softwares($sort);
+    list_softwares();
     break;
   
   default: // Because the search form is submitted via GET (to make results linkable), the operation can't be directed via GET.
@@ -36,7 +30,7 @@ function view_details($title){
   include_once('header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
   
   $title = $_GET['software_title'];
-  $row = mysql_query("SELECT * FROM softwares WHERE title='$title'");
+  $row = mysql_query("SELECT sid, title, description, value, total, available FROM softwares WHERE title='$title'");
 
   if(list($sid,$title,$description,$value,$total,$available) = mysql_fetch_row($row)) { // User exists, display data
     $deployedvalue = $value * ($total - $available);
@@ -57,17 +51,24 @@ function view_details($title){
 } // Ends view_details function
 
 
-function list_softwares($sort){
+function list_softwares(){
   global $CI;
   AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
   
   include_once('./header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
-          
+   
+  // make sure a sort variable is passed or set it to sort my name
+  if($_GET['sort']) {
+    $sort = $_GET['sort'];
+  }
+  else {
+  $sort = "title";
+  }
+
   $limit = "25";    // This is the number of rows per page to be displayed. 
-	               //This could be user-configurable, but I'm leaning away from it as it seem unnecessary.   
-  $query_count   = "SELECT * FROM softwares";
+  $query_count   = "SELECT MAX(sid) FROM softwares";
   $result_count   = mysql_query($query_count);    
-  $totalrows       = mysql_num_rows($result_count);
+  $totalrows       = mysql_result($result_count, 0, 0);
   $numofpages   = round($totalrows/$limit, 0);  // This rounds the division result up to the nearest whole number.
   
   if(empty($_GET['page'])){
@@ -77,94 +78,79 @@ function list_softwares($sort){
     $page = $_GET['page']; // As this is never inserted into an SQL statement, it's safe to use without cleaning.
   }
 
-  $limitvalue = $page * $limit - ($limit); 
-  
-  if($_GET['view'] == "printable"){ // This way, if you print, all users show up...I just hope they know what they're doing when they click print.
-    $query = "SELECT * FROM softwares ORDER by '$sort' ASC";
+  $lowerlimit = $page * $limit - $limit;   
+  if($_GET['show'] == "all"){ // for print all, we really don't want to paginate, but we can still use this function
+    $query = "SELECT title, total, available FROM softwares ORDER by $sort ASC";
   }
   else {
-    $query  = "SELECT * FROM softwares ORDER BY '$sort' ASC LIMIT $limitvalue, $limit";
+    // this is MUCH faster than using a lower limit because the primary key is indexed.
+    $sql  = "SELECT title, total, available FROM softwares WHERE sid > $lowerlimit ORDER BY $sort LIMIT $limit";
   }
   
- $result = mysql_query($query); 
+ $result = mysql_query($sql); 
 
-  if(mysql_num_rows($result) == 0){
+  if(mysql_num_rows($result) == "0"){
     $result = "No software titles were found in the database. Please click \"Add Software\" on the left to add software titles.";
     require_once('./infopage.php');
     exit();
   }
   else {
-    echo "<div id=\"main\"><h1>All Software Titles</h1>";
-
+    echo "<div id=\"main\"><h1>All Software Titles</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
-  
-    echo "<table width=\"100%\">".
-           "<tr><th align=\"left\"><a href=softwareview.php?op=view_all&sort=title>Title</a></th>".
-           "<th align=\"left\"><a href=softwareview.php?op=view_all&sort=available>Available Licenses</th></a>".
-           "<th align=\"left\"><a href=softwareview.php?op=view_all&sort=total>Total Licenses</th></a></tr>";
+    echo "<table width=\"100%\">\n".
+            "<tr><th align=\"left\"><a href=softwareview.php?op=view_all&sort=title>Title</a></th>".
+            "<th align=\"left\"><a href=softwareview.php?op=view_all&sort=available>Available Licenses</th></a>".
+            "<th align=\"left\"><a href=softwareview.php?op=view_all&sort=total>Total Licenses</th></a></tr>\n";
     
-    while(list($sid,$title,$description,$value,$total,$available) = mysql_fetch_row($result)){
+    while(list($title,$total,$available) = mysql_fetch_row($result)){
       if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
         $bgcolor = "#FFFFFF";
       }
       else {
         $bgcolor = "#E0E0E0";
       }
-      echo "<tr bgcolor=\"$bgcolor\"><td width=\"25%\"><a href=\"softwareview.php?software_title=$title\">$title</a></td><td width=\"25%\">$available</td><td width=\"25%\">$total</td></tr>";
+      echo "<tr bgcolor=\"$bgcolor\"><td width=\"25%\"><a href=\"softwareview.php?software_title=$title\">$title</a></td><td width=\"25%\">$available</td><td width=\"25%\">$total</td></tr>\n";
     }
-  
     echo("</table>");
   
-    if($_GET['view'] != "printable") {  
-      if($page != "1"){ // Generate "Prev" link if there are previous pages to display.
+ if(($_GET['show'] != "all") && ($numofpages > "1")) {
+      if($page != "1") { // Generate Prev link only if previous pages exist.
         $pageprev = $page - "1";
-        echo("<a href=\"softwareview.php?op=view_all&amp;page=$pageprev\"> Prev</a> "); 
+	echo "<a href=\"softwareview.php?op=view_all&page=$pageprev\"> Prev </a>";
       }
-  
       $i = "1";
-  
-      if($page > $i){  // List all page numbers as links up to the current page if the page is after page 1.
-        while($i < $page){
-          echo " <a href=\"softwareview.php?op=view_all&amp;page=$i\">$i</a> ";
-          $i++;
-        }
+      while($i < $page) { // Build all page number links up to the current page
+        echo "<a href=\"softwareview.php?op=view_all&page=$i\"> $i </a>";
+	$i++;
       }
-      if($numofpages > "1"){ // Only display the current page number if there is more than one page. 
-         echo $page;
+      echo "[$page]"; // List Current page
+      $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
+      while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
+        echo "<a href=\"softwareview.php?op=view_all&page=$i\"> $i </a>";
+        $i++;
       }
-      $i = $page + "1";
-      if($numofpages-$page > "0"){ // Display all page numbers after the current page.
-        while($i < $numofpages + "1"){
-          echo " <a href=\"softwareview.php?op=view_all&amp;page=$i\">$i</a> ";
-          $i++;
-        }
-      }
-    
-      if($page <= $numofpages){ // Display "Next" link if there is a page after the current one.
+      if($page < $numofpages) { // Generate Next link if there is a page after this one
         $nextpage = $page + "1";
-        echo " <a href=\"softwareview.php?op=view_all&amp;page=$nextpage\">Next</a>";
-     }
-  
-      if($limitvalue + $limit < $totalrows){ 
-        $upperlimit = $limitvalue + $limit;
-      }
-      else {
-        $upperlimit = $totalrows;
-      }
-    
-      if($limitvalue == "0"){ // The program is happy to start counting with 0, humans aren't.
-        $lowerlimit = "1";
-      }
-      else {
-        $lowerlimit = $limitvalue + "1";
+	echo "<a href=\"softwareview.php?op=view_all&page=$nextpage\"> Next </a>";
       }
     }
     
-    if($_GET['view'] != "printable"){
-      echo "<br /><br />Showing $lowerlimit - $upperlimit out of $totalrows";
+    // Regardless of how many pages there are, well show how many records there are and what records we're displaying.
+    if($lowerlimit + $limit < $totalrows) {
+      $upperlimit = $lowerlimit + $limit;
+    }
+    else {
+      $upperlimit = $totalrows;
+    }
+    if($lowerlimit == "0") { // The program is happy to start counting with 0, humans aren't.
+      $lowerlimit = "1";
+    }
+    echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
+    if($_GET['show'] != "all") {
+    echo "<a href=\"".$_SERVER['REQUEST_URI']."&show=all\">Show all results on one page</a>";
     }
     echo "</div>";
-  } 
+  }  
 } // Ends list_softwares function
 
 ?>
