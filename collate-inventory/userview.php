@@ -166,7 +166,7 @@ function list_users(){
       $lowerlimit = "1";
     }
     echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
-    if($_GET['show'] != "all") {
+    if($_GET['show'] != "all" && $numofpages > "1") {
     echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
     }
     echo "</div>";

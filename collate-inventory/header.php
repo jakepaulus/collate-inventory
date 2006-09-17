@@ -12,6 +12,7 @@
     <meta name="keywords" content="hardware,software,inventory,users" />
    
 <?php 
+global $CI;
 echo $extrameta;
 
 // Make sure we supply the correct css for the view the user is requesting and we don't load those libraries if we don't have to.
@@ -34,12 +35,12 @@ if($_GET['view'] == "printable"){ ?>
 
         <div id="content">
 	
-<div class="path"><table width="100%"><tr><td align="left"><a href="search.php">Advanced Search</a></td><td align="right"><a href="<?php
+<div class="path"><table width="100%"><tr><td align="left"><a href="search.php">Advanced Search</a> <?php if($CI['settings']['checklevel5perms'] == "0" || $CI['user']['accesslevel'] == "5"){ echo " | <a href=\"settings.php\">Settings</a>"; } ?></td><td align="right"><a href="<?php
 // This little mess here makes sure that the print URL is formed properly.
 
 echo $_SERVER['REQUEST_URI']; 
 if(stristr($_SERVER['REQUEST_URI'], "?") == TRUE){ 
-  echo "&"; 
+  echo "&amp;"; 
 } 
 else {
   echo "?";

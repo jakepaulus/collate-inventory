@@ -32,14 +32,13 @@ function clean($variable){
 function insert_software(){
   global $CI;
   AccessControl("3"); // The access level required for this function is 3. Please see the documentation for this function in common.php.
-  include_once('./header.php');
   
   if (strlen($_POST['title']) < "1" || 
       strlen($_POST['desc']) < "1" || 
       strlen($_POST['total']) < "1" || 
       strlen($_POST['value']) < "1" || 
       strlen($_POST['inuse']) < "1") { 
-    $result = "All fields except are required. Please go back and try again."; 
+    $result = "All fields except are required. Please go back and ensure all fields are completed."; 
     require_once('infopage.php'); 
     return;
   } 

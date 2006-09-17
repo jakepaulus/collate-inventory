@@ -26,7 +26,7 @@ function add_software(){
   // Display new-software form that posts to software_process.php 
 ?>
   <h1>Add Software To Your Library:</h1>
-  <form name="new_software" action="software_process.php?op=new" method="post">
+  <form id="new_software" action="software_process.php?op=new" method="post">
     <p>Software Title:<br />
     <input id="title" name="title" type="text" size="" /></p>
     <p>Description of Software:<br />

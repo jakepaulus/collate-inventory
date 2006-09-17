@@ -79,8 +79,8 @@ function list_softwares(){
   }
 
   $lowerlimit = $page * $limit - $limit;   
-  if($_GET['show'] == "all"){ // for print all, we really don't want to paginate, but we can still use this function
-    $query = "SELECT title, total, available FROM softwares ORDER by $sort ASC";
+  if($_GET['show'] == "all"){ // for show all, we really don't want to paginate, but we can still use this function
+    $sql = "SELECT title, total, available FROM softwares ORDER BY $sort ASC";
   }
   else {
     // this is MUCH faster than using a lower limit because the primary key is indexed.
@@ -146,7 +146,7 @@ function list_softwares(){
       $lowerlimit = "1";
     }
     echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
-    if($_GET['show'] != "all") {
+    if($_GET['show'] != "all" && $numofpages > "1") {
     echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
     }
     echo "</div>";
