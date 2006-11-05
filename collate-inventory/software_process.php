@@ -33,30 +33,20 @@ function insert_software(){
   global $CI;
   AccessControl("3"); // The access level required for this function is 3. Please see the documentation for this function in common.php.
   
-  if (strlen($_POST['title']) < "1" || 
-      strlen($_POST['desc']) < "1" || 
-      strlen($_POST['total']) < "1" || 
-      strlen($_POST['value']) < "1" || 
-      strlen($_POST['inuse']) < "1") { 
+  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+ 
+  if (strlen($_POST['title']) < "1" || strlen($_POST['desc']) < "1" || strlen($_POST['total']) < "1" ){ 
     $result = "All fields except are required. Please go back and ensure all fields are completed."; 
-    require_once('infopage.php'); 
+    require_once('./include/infopage.php'); 
     return;
   } 
   else {
 
   $title = clean($_POST['title']);
   $description = clean($_POST['desc']);
-  $value = clean($_POST['value']);
   $total = clean($_POST['total']);
-  $available = abs($total - $_POST['inuse']);
-  
-  if(!is_numeric($value)){
-    $result = "\"$value\" contains more than just numbers. Please only enter numbers for the value.";
-    require_once('infopage.php');
-    exit();
-  } 
-  
-  $sql = "INSERT INTO softwares (sid, title, description, value, total, available) VALUES(NULL, '$title', '$description', '$value', '$total', '$available')";
+
+  $sql = "INSERT INTO softwares (sid, title, description, total, available) VALUES(NULL, '$title', '$description', '$total', '$total')";
 
   $result = mysql_query($sql);
 
@@ -64,9 +54,10 @@ function insert_software(){
       $result = "The data has been succesfully added to the database.";
     }
     else {
-      $result = "Something went wrong. Make sure you comleted all of the fields.";
+      $result = "Something went wrong. Make sure you comleted all of the fields and make sure you don't have this software in the database already.";
     }
-    require_once('infopage.php');
+    
+    require_once('./include/infopage.php');
   }
 } // Ends insert() function
 

@@ -7,14 +7,14 @@
           <li><a href="user.php">Add User</a></li>
           <li><a href="userview.php?op=view_all">List Users</a></li>
           <li>User Name:</li>
-          <li><input id="user_name" name="user_name" type="text" size="15" /></li>
+          <li><input id="username" name="username" type="text" size="15" /></li>
           <li><input type="submit" value=" Go " /></li>
         </ul>
       </div>
-      <div id="user_nameupdate" class="autocomplete"></div>
+      <div id="username_update" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
       // <![CDATA[
-        new Ajax.Autocompleter('user_name','user_nameupdate','_users.php');
+        new Ajax.Autocompleter('username','username_update','_users.php');
       // ]]>
       </script>
     </div>

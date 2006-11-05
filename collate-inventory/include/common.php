@@ -31,7 +31,7 @@ while ($column = mysql_fetch_assoc($result)) {
  * Access Level 0 = Access denied completely: User can see index.php and login.php
  * Access Level 1 = Read-Only access, no changes can be made
  * Access Level 3 = Changes to inventory can be made, but no changes to settings are allowed
- * Access Level 5 = Full control of the application.
+ * Access Level 5 = Full control of the application including setting changes, user's access level modifications, and user password resets.
  */
 
  function AccessControl($accesslevel) {
@@ -74,7 +74,7 @@ while ($column = mysql_fetch_assoc($result)) {
   
   // If we've gottent his far, it means the user is already logged in. We'll check their access level and allow or deny access.
   $CI['user']['accesslevel'] = $_SESSION['accesslevel'];
-  if($CI['user']['accesslevel'] <= $accesslevel){
+  if($CI['user']['accesslevel'] >= $accesslevel){
   return($CI['user']['accesslevel']); // Access is allowed
   }
   

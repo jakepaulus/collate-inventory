@@ -21,27 +21,25 @@ switch($op){
 }
 
 // And lastly, we'll need a footer
-include_once('footer.php');
+include_once('./include/footer.php');
 
 function view_details($title){
   global $CI;
   AccessControl("1"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
  
-  include_once('header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
   
   $title = $_GET['software_title'];
-  $row = mysql_query("SELECT sid, title, description, value, total, available FROM softwares WHERE title='$title'");
+  $row = mysql_query("SELECT sid, title, description, total, available FROM softwares WHERE title='$title'");
 
-  if(list($sid,$title,$description,$value,$total,$available) = mysql_fetch_row($row)) { // User exists, display data
-    $deployedvalue = $value * ($total - $available);
-    $totalvalue = $value * $total;
+  if(list($sid,$title,$description,$total,$available) = mysql_fetch_row($row)) {
+
     $deployed = $total - $available;
     echo "<div id=\"main\">".
 	    "<h1>Details for $title:</h1>".
             "<p><b>Description:</b><br />".
             "$description</p>".
             "<p><b>Other Details:</b><br />".
-            "Cost Per license: $cost <br /> Value of deployed software: $deployedvalue <br /> Value of all licenses: $totalvalue <br />".
             "Licenses in use: $deployed <br /> Licenses available: $available </p>";
   }
     // Display the usernames of those who have licenses checked out
@@ -55,7 +53,7 @@ function list_softwares(){
   global $CI;
   AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
   
-  include_once('./header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
    
   // make sure a sort variable is passed or set it to sort my name
   if($_GET['sort']) {
@@ -91,7 +89,7 @@ function list_softwares(){
 
   if(mysql_num_rows($result) == "0"){
     $result = "No software titles were found in the database. Please click \"Add Software\" on the left to add software titles.";
-    require_once('./infopage.php');
+    require_once('./include/infopage.php');
     exit();
   }
   else {

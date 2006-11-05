@@ -19,13 +19,13 @@ switch($op) {
   form();
 }
 
-require_once('footer.php');
+require_once('./include/footer.php');
 
 
 
 function form() {
 global $CI;
-require_once('header.php');
+require_once('./include/header.php');
 echo "<div id=\"main\">";
 ?>
 
@@ -78,7 +78,7 @@ function clean($variable){
 
 function process() {
   global $CI;
-  require_once('./header.php');
+  require_once('./include/header.php');
  
   $checklevel1perms = clean($_POST['checklevel1perms']);
   $checklevel3perms = clean($_POST['checklevel3perms']);
@@ -89,68 +89,82 @@ function process() {
   
   $result = "";
   
+  // If someone set checklevel1perms or checklevel3perms to yes without setting higher level permission checks to yes
+  // we should still change those higher level permission checks to ON and alert the user that this is taking place.
+  if($checklevel1perms == "1" && ($checklevel3perms != "1" || $checklevel5perms != "1")){ 
+    $checklevel3perms = "1";
+    $checklevel5perms = "1";
+    $extraalert = "<p>You have chosen to require permission checks to view inventory details without requiring permission checks to modify inventory data or ".
+                      "application settings. To protect your application, permission checks will be required to modify inventory data as well as application settings.</p><br />";
+  }
+  if($checklevel3perms == "1" && $checklevel5perms != "1"){
+    $checklevel5perms = "1";
+    $extraalert = "<p>You have chosen to require permission checks to view/modify inventory data but not to change application settings. To protect your ".
+		      "application, permission checks will be required to make setting changes to this application.</p><br />";
+  }
+  
   if($CI['settings']['checklevel1perms'] != $checklevel1perms) {
     $sql = "UPDATE settings SET value='$checklevel1perms' WHERE name='checklevel1perms'";
     mysql_query($sql);
     if (mysql_affected_rows() == "1"){
-    $result = $result."Level 1 Permission check setting successfully modified. <br />";
+    $result .= "Level 1 Permission check setting successfully modified. <br />";
     }
     else {
-      $result = $result."Level 1 Permission check settings NOT successfully changed! <br />";
+      $result .= "Level 1 Permission check settings NOT successfully changed! <br />";
     }
   }
   if($CI['settings']['checklevel3perms'] != $checklevel3perms) {
     $sql = "UPDATE settings SET value='$checklevel3perms' WHERE name='checklevel3perms'";
     mysql_query($sql);
     if (mysql_affected_rows() == "1"){
-      $result = $result."Level 3 Permission check setting successfully modified. <br />";
+      $result .= "Level 3 Permission check setting successfully modified. <br />";
     }
     else {
-      $result = $result."Level 3 Permission check settings NOT successfully changed! <br />";
+      $result .= "Level 3 Permission check settings NOT successfully changed! <br />";
     }
   }
   if($CI['settings']['checklevel5perms'] != $checklevel5perms) {
     $sql = "UPDATE settings SET value='$checklevel5perms' WHERE name='checklevel5perms'";
     mysql_query($sql);
     if (mysql_affected_rows() == "1"){
-    $result = $result."Level 5 Permission check setting successfully modified. <br />";
+    $result .= "Level 5 Permission check setting successfully modified. <br />";
     }
     else {
-      $result = $result."Level 5 Permission check settings NOT successfully changed! <br />";
+      $result .= "Level 5 Permission check settings NOT successfully changed! <br />";
     }
   }
   if($CI['settings']['adminname'] != $adminname) {
     $sql = "UPDATE settings SET value='$adminname' WHERE name='adminname'";
     mysql_query($sql);
     if (mysql_affected_rows() == "1"){
-    $result = $result."Collate:Inventory administrator's name setting successfully modified. <br />";
+    $result .= "Collate:Inventory administrator's name setting successfully modified. <br />";
     }
     else {
-      $result = $result."Collate:Inventory administrator's name setting NOT successfully changed! <br />";
+      $result .= "Collate:Inventory administrator's name setting NOT successfully changed! <br />";
     }
   }
   if($CI['settings']['adminphone'] != $adminphone) {
     $sql = "UPDATE settings SET value='$adminphone' WHERE name='adminphone'";
     mysql_query($sql);
     if (mysql_affected_rows() == "1"){
-    $result = $result."Collate:Inventory administrator's telephone number setting successfully modified. <br />";
+    $result .= "Collate:Inventory administrator's telephone number setting successfully modified. <br />";
     }
     else {
-      $result = $result."Collate:Inventory administrator's telephone number setting NOT successfully changed! <br />";
+      $result .= "Collate:Inventory administrator's telephone number setting NOT successfully changed! <br />";
     }
   }
   if($CI['settings']['adminemail'] != $adminemail) {
     $sql = "UPDATE settings SET value='$adminemail' WHERE name='adminemail'";
     mysql_query($sql);
     if (mysql_affected_rows() == "1"){
-    $result = $result."Collate:Inventory administrator's email address setting successfully modified. <br />";
+    $result .= "Collate:Inventory administrator's email address setting successfully modified. <br />";
     }
     else {
-      $result = $result."Collate:Inventory administrator's email address setting NOT successfully changed! <br />";
+      $result .= "Collate:Inventory administrator's email address setting NOT successfully changed! <br />";
     }
   }
 
-  require_once('infopage.php');
+  require_once('./include/infopage.php');
 
 } // Ends process function
 ?>

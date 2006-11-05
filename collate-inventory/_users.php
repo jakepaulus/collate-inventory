@@ -5,18 +5,18 @@
 
   require_once('include/db_connect.php');
 
-  $search = $_POST['user_name'];
+  $search = $_POST['username'];
 
   if(strlen($search) < "3"){ return;} // Prevent infinite loops and other bad stuff.
   
   echo "<ul>";
   
-  $sql = "SELECT firstname, lastname FROM users WHERE firstname LIKE '%$search%' OR lastname LIKE '%$search%'";
+  $sql = "SELECT username FROM users WHERE username LIKE '%$search%' LIMIT 0, 5";
   
   $result = mysql_query($sql);
   
-  while(list($firstname, $lastname) = mysql_fetch_row($result)) { 
-    echo "<li>$firstname $lastname</li>";
+  while(list($username) = mysql_fetch_row($result)) { 
+    echo "<li>$username</li>";
   }
 
   echo "</ul>";

@@ -27,33 +27,37 @@ switch($op){
     break;
   
   default: // Because the search form is submitted via GET (to make results linkable), the operation can't be directed via GET.
-    view_details($user_name);
+    view_details($username);
     break;
 }
 
 // And lastly, we'll need a footer
-include_once('footer.php');
+include_once('./include/footer.php');
 
 
 // Functions for this page are below
 	
-function view_details($user_name){
+function view_details($username){
   global $CI;
   AccessControl("1"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
  
-  include_once('header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  
+  $username = strtolower($_GET['username']);
+  
+  if($username == "system") { // We don't want to use our template for user details for the system account.
+    $result = "System is a special account used to assign assets to that are considered \"in inventory.\"";
+    require_once('./include/infopage.php');
+    exit();
+  }
+  
+  require_once('./include/db_connect.php');
+  $row = mysql_query("SELECT uid, username, phone, altphone, address, city, state, zip, lid, email FROM users WHERE username='$username'");
 
-  $user_name = explode(" ",$_GET['user_name']);
-  $firstname = rtrim($user_name[0]);
-  $lastname = rtrim($user_name[1]);
-
-  require_once('include/db_connect.php');
-  $row = mysql_query("SELECT uid, firstname, lastname, phone, altphone, address, city, state, zip, lid, email FROM users WHERE firstname='$firstname' AND lastname='$lastname'");
-
-  if(list($uid,$firstname,$lastname,$phone,$altphone,$address,$city,$state,$zip,$lid,$email) = mysql_fetch_row($row)) { // User exists, display data
-    require_once('header.php');
+  if(list($uid,$username,$phone,$altphone,$address,$city,$state,$zip,$lid,$email) = mysql_fetch_row($row)) { // User exists, display data
+    require_once('./include/header.php');
     echo "<div id=\"main\">".
-	    "<h1>Details for $firstname $lastname:</h1>".
+	    "<h1>Details for $username:</h1>".
             "<p><b>Address:</b><br />".
             "$address <br /> $city, $state $zip</p>".
             "<p><b>Telephone Numbers:</b><br />".
@@ -67,8 +71,8 @@ function view_details($user_name){
     echo "</div>";
   }  
   else { // a row doesn't exist with that user's name: show error
-    $result = "I'm sorry, you must supply a valid name in order for me to find what you're looking for.";
-    require_once('infopage.php');
+    $result = "I'm sorry, you must supply a valid username in order for me to find what you're looking for.";
+    require_once('./include/infopage.php');
   } 
 
 } // Ends view_details function
@@ -77,13 +81,13 @@ function list_users(){
   global $CI;
   AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
   
-  include_once('header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
   
   if($_GET['sort']) { // Determinte what to the list by.
     $sort = $_GET['sort'];
   }
   else {
-    $sort = "lastname";
+    $sort = "username";
   }
   
   $limit = "25";
@@ -101,11 +105,11 @@ function list_users(){
   
   $lowerlimit = $page * $limit - $limit;
   if($_GET['show'] == "all") { // for print all, we really don't want to paginate, but we can still use this function
-    $sql = "SELECT firstname, lastname, city, email FROM users ORDER BY $sort ASC";
+    $sql = "SELECT username, city, email FROM users ORDER BY $sort ASC";
   }
   else {
     // this is MUCH faster than using a lower limit because the primary key is indexed.
-    $sql = "SELECT firstname, lastname, city, email FROM users WHERE uid > $lowerlimit ORDER BY $sort LIMIT $limit"; 
+    $sql = "SELECT username, city, email FROM users WHERE uid > $lowerlimit ORDER BY $sort LIMIT $limit"; 
   }
   $result = mysql_query($sql);
   
@@ -118,18 +122,18 @@ function list_users(){
     echo "<div id=\"main\">\n<h1>All Users</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
     echo "<table width=\"100%\">\n". // Here we actually build the HTML table
-           "<tr><th align=\"left\"><a href=\"userview.php?op=view_all&amp;sort=lastname\">Name</a></th>".
+           "<tr><th align=\"left\"><a href=\"userview.php?op=view_all&amp;sort=username\">Username</a></th>".
 	   "<th align=\"left\"><a href=\"userview.php?op=view_all&amp;sort=city\">City</a></th>".
 	   "<th align=\"left\"><a href=\"userview.php?op=view_all&amp;sort=email\">Email</a></th></tr>\n";
     
-    while(list($firstname,$lastname,$city,$email) = mysql_fetch_row($result)) { 
+    while(list($username,$city,$email) = mysql_fetch_row($result)) { 
       if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
         $bgcolor = "#FFFFFF";
       }
       else {
         $bgcolor = "#E0E0E0";
       }
-      echo "<tr bgcolor=\"$bgcolor\"><td><a href=\"userview.php?op=view_details&amp;user_name=$firstname $lastname\">$firstname $lastname</a></td><td>$city</td><td><a href=\"mailto:$email\">$email</a></td></tr>\n";
+      echo "<tr bgcolor=\"$bgcolor\"><td><a href=\"userview.php?op=view_details&amp;username=$username\">$username</a></td><td>$city</td><td><a href=\"mailto:$email\">$email</a></td></tr>\n";
     }
     echo "</table>"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
     

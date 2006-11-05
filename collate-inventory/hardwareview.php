@@ -21,7 +21,7 @@ switch($op){
 
 
 // And lastly, we'll need a footer
-include_once('footer.php');
+include_once('./include/footer.php');
 
 
 
@@ -29,12 +29,12 @@ function view_details($search){
   global $CI;
   AccessControl("1"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
  
-  include_once('header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
   
   $search = $_GET['search'];
-  $row = mysql_query("SELECT category, asset, serial, description, value FROM hardwares WHERE asset='$search' OR serial='$search'");
+  $row = mysql_query("SELECT hid, category, asset, serial, description FROM hardwares WHERE asset='$search' OR serial='$search'");
 
-  if(list($category,$asset,$serial,$description,$value) = mysql_fetch_row($row)) { // User exists, display data
+  if(list($hid,$category,$asset,$serial,$description) = mysql_fetch_row($row)) { // User exists, display data
    echo "<div id=\"main\">".
 	    "<h1>Details for Asset: $asset:</h1>".
             "<p><b>Description:</b><br />".
@@ -43,8 +43,14 @@ function view_details($search){
             "Serial Number: $serial <br /> Value: $value </p>";
   }
     // Display the history of this hardware
-    echo "<h1>Good Title:</h1>".
-           "</div>";
+    echo "<h1>History</h1>".
+	   "<table width=\"100%\"><tr><th>Username</th><th>Location</th><th>Date Out</th><th>Date In</th></tr>";
+	   
+    $row = mysql_query("SELECT username, location, codate, cidate FROM hardware WHERE hid='$hid' ORDER BY cidate ASC");	   
+    while(list($username,$location,$codate,$cidate) = mysql_fetch_row($row)){
+      echo "<tr><td><a href=\"userview.php?username=$username\">$username</a></td><td>$location</td><td>$codate</td><td>$cidate</td>";
+    }
+    echo "</table></div>";
     
 } // Ends view_details function
 
@@ -52,7 +58,7 @@ function list_hardwares(){
   global $CI;
   AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
   
-  include_once('./header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
 
   if($_GET['sort']) { // Determinte what to the list by.
     $sort = $_GET['sort'];
@@ -80,13 +86,13 @@ function list_hardwares(){
   }
   else {
     // this is MUCH faster than using a lower limit because the primary key is indexed.
-    $sql = "SELECT hid, category, asset, serial FROM hardwares WHERE hid > $lowerlimit ORDER BY $sort LIMIT $limit"; 
+    $sql = "SELECT hid, category, asset, serial, username FROM hardwares WHERE hid > $lowerlimit ORDER BY $sort LIMIT $limit"; 
   }
   $result = mysql_query($sql);
   
   if(mysql_num_rows($result) == "0") {
     $result = "No database records were found. Please add records using the \"Add..\" links to the left.";
-    require_once('./infopage.php');
+    require_once('./include/infopage.php');
     exit();
   }
   else { 
@@ -95,16 +101,17 @@ function list_hardwares(){
     echo "<table width=\"100%\">\n". // Here we actually build the HTML table
            "<tr><th align=\"left\"><a href=\"hardwareview.php?op=view_all&amp;sort=category\">Category</a></th>".
 	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&amp;sort=asset\">Asset Number</a></th>".
-	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&amp;sort=serial\">Serial Number</a></th></tr>\n";
+	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&amp;sort=serial\">Serial Number</a></th>".
+	   "<th align=\"left\"><a href=\"hardwareview.php?op=view_all&amp;sort=username\">Issued to</a></th></tr>\n";
     
-    while(list($hid,$category,$asset,$serial) = mysql_fetch_row($result)) { 
+    while(list($hid,$category,$asset,$serial,$username) = mysql_fetch_row($result)) { 
       if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
         $bgcolor = "#FFFFFF";
       }
       else {
         $bgcolor = "#E0E0E0";
       }
-      echo "<tr bgcolor=\"$bgcolor\"><td><a href=\"hardwareview.php?op=view_details&amp;search=$serial\">$category</a></td><td>$asset</td><td>$serial</td></tr>\n";
+      echo "<tr bgcolor=\"$bgcolor\"><td>$category</td><td><a href=\"hardwareview.php?op=view_details&amp;search=$asset\">$asset</a></td><td><a href=\"hardwareview.php?op=view_details&amp;search=$serial\">$serial</a></td><td>$username</td></tr>\n";
     }
     echo "</table>"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
   }

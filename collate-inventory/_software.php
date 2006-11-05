@@ -11,7 +11,7 @@
   
   echo "<ul>";
   
-  $sql = "SELECT title FROM softwares WHERE title LIKE '%$search%'";
+  $sql = "SELECT title FROM softwares WHERE title LIKE '%$search%' LIMIT 0, 5";
   
   $result = mysql_query($sql);
   

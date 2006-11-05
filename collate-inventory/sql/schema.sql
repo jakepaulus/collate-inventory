@@ -1,17 +1,6 @@
 CREATE DATABASE `collate` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
 USE collate;
 
-
-CREATE TABLE `appusers` (
-  `auid` INT( 10 ) NOT NULL AUTO_INCREMENT , 
-  `uid` INT( 10 ) NOT NULL ,
-  `username` VARCHAR( 75 ) NOT NULL,
-  `password` VARCHAR( 75 ) NOT NULL,
-  PRIMARY KEY ( `auid` ) , 
-  UNIQUE ( `username` )
-) TYPE = MYISAM COMMENT = 'List of C:I users' ;
-
-
 CREATE TABLE `locations` (
   `lid` INT( 10 ) NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR( 75 ) NOT NULL ,
@@ -26,7 +15,7 @@ CREATE TABLE `locations` (
 
 
 CREATE TABLE `hardware` (
-  `coid` int(10) NOT NULL,
+  `coid` int(10) NOT NULL AUTO_INCREMENT,
   `uid` int(10) NOT NULL,
   `hid` int(10) NOT NULL,
   `codate` datetime NOT NULL,
@@ -53,14 +42,6 @@ CREATE TABLE `hardwares` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of hardware' ;
 
 
-CREATE TABLE `hcats` (
-  `catid` INT( 10 ) NOT NULL AUTO_INCREMENT ,
-  `catname` VARCHAR( 255 ) NOT NULL ,
-  PRIMARY KEY ( `catid` ) ,
-  UNIQUE ( `catname` )
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Hardware categories' ;
-
-
 CREATE TABLE `settings` (
   `name` VARCHAR(100) NOT NULL,
   `value` VARCHAR(100) NOT NULL,
@@ -69,7 +50,7 @@ PRIMARY KEY (`name`)
 
 
 CREATE TABLE `software` (
-  `coid` int(10) NOT NULL,
+  `coid` int(10) NOT NULL AUTO_INCREMENT,
   `sid` int(10) NOT NULL,
   `uid` int(10) NOT NULL,
   `issued` datetime NOT NULL,
@@ -97,6 +78,8 @@ CREATE TABLE `users` (
   `uid` int(10) NOT NULL auto_increment,
   `firstname` varchar(100) NOT NULL,
   `lastname` varchar(100) NOT NULL,
+  `password` varchar(32) NOT NULL,
+  `accesslevel` TINYINT(1) DEFAULT '0' NOT NULL
   `phone` varchar(25) NOT NULL,
   `altphone` varchar(25) NOT NULL,
   `address` varchar(100) NOT NULL,

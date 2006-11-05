@@ -34,16 +34,14 @@ function clean($variable){ // This function needs to be moved to a separate scri
 
 function add_user(){
   global $CI;
-  require_once('header.php');
+  require_once('./include/header.php');
   echo "<div id=\"main\">";
   // Display new-user form that posts to user_process.php 
 ?>
   <h1>Add a user:</h1>
   <form id="new_user" action="user_process.php?op=new" method="post">
-    <p>First Name:<br />
-    <input id="firstname" name="firstname" type="text" size="" /></p>
-    <p>Last Name:<br />
-    <input id="lastname" name="lastname" type="text" size="" /></p>
+    <p>Username:<br />
+    <input id="username" name="username" type="text" size="" /></p>
     <p>Telephone Number:<br />
     <input id="phone" name="phone" type="text" size="" /></p>
     <p>Alt. Telephone Number: (optional)<br />
@@ -62,7 +60,7 @@ function add_user(){
   </form>
 <?php
   echo "</div>";
-  require_once('footer.php');
+  require_once('./include/footer.php');
 }
 
 function edit_user(){

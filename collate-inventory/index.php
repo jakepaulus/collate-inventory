@@ -6,9 +6,9 @@
  * program. 
  */
 require_once('./include/common.php');
-AccessControl(0); // The access level of this script is 0. Please see the documentation for this function in common.php.
+AccessControl('0'); // The access level of this script is 0. Please see the documentation for this function in common.php.
 
-require_once('header.php'); 
+require_once('./include/header.php'); 
 ?>
 
 <div id="main">
@@ -34,6 +34,6 @@ require_once('header.php');
       </p>
       
 </div>
-<?php require_once('footer.php'); ?>
+<?php require_once('./include/footer.php'); ?>
 
      

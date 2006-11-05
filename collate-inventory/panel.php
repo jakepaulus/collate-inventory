@@ -6,12 +6,11 @@
  * program. 
  */
 require_once('./include/common.php');
-AccessControl(3); // The access level of this script is 3. Please see the documentation for this function in common.php.
+AccessControl('5'); // The access level of this script is 3. Please see the documentation for this function in common.php.
 require_once('./include/header.php');
-
 echo "<div id=\"main\">";
 
-echo "</div>";
 
+echo "</div>";
 require_once('./include/footer.php');
 ?>

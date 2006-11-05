@@ -31,20 +31,26 @@ if($_GET['view'] == "printable"){ ?>
     <div id="header">
         <a href="index.php">Collate:Inventory</a>&nbsp;
     </div>
-    <div id="wrapper"> 
+ 
 
         <div id="content">
 	
-<div class="path"><table width="100%"><tr><td align="left"><a href="search.php">Advanced Search</a> <?php if($CI['settings']['checklevel5perms'] == "0" || $CI['user']['accesslevel'] == "5"){ echo " | <a href=\"settings.php\">Settings</a>"; } ?></td><td align="right"><a href="<?php
-// This little mess here makes sure that the print URL is formed properly.
+<div class="path">
+  <table width="100%">
+    <tr><td align="left"><a href="search.php">Advanced Search</a> 
+      <?php if($CI['settings']['checklevel5perms'] == "0" || $CI['user']['accesslevel'] == "5") {  echo " | <a href=\"panel.php\">Control Panel</a>"; 
+     }  
+     ?></td><td align="right"><a href="<?php
+     // This little mess here makes sure that the print URL is formed properly.
 
-echo $_SERVER['REQUEST_URI']; 
-if(stristr($_SERVER['REQUEST_URI'], "?") == TRUE){ 
-  echo "&amp;"; 
-} 
-else {
-  echo "?";
-}
-?>view=printable">printable</a>&nbsp;</td></tr></table>
+    echo $_SERVER['REQUEST_URI']; 
+    if(stristr($_SERVER['REQUEST_URI'], "?") == TRUE){ 
+      echo "&amp;"; 
+    } 
+    else {
+      echo "?";
+    }
+    ?>view=printable">printable</a>&nbsp;</td></tr>
+</table>
     </div>
 

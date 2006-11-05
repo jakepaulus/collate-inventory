@@ -11,7 +11,7 @@
   
   echo "<ul>";
   
-  $sql = "SELECT asset, serial FROM hardwares WHERE asset LIKE '%$search%' OR serial LIKE '%$search%'";
+  $sql = "SELECT asset, serial FROM hardwares WHERE asset LIKE '%$search%' OR serial LIKE '%$search%' LIMIT 0, 5";
 
   $result = mysql_query($sql);
   
