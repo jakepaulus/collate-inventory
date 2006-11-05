@@ -16,13 +16,12 @@ CREATE TABLE `locations` (
 
 CREATE TABLE `hardware` (
   `coid` int(10) NOT NULL AUTO_INCREMENT,
-  `uid` int(10) NOT NULL,
+  `username` varchar( 201 ) NOT NULL,
   `hid` int(10) NOT NULL,
+  `location` varchar( 75 ) NOT NULL,
   `codate` datetime NOT NULL,
   `cidate` datetime NOT NULL,
   PRIMARY KEY (`coid`),
-  KEY `uid` (`uid`),
-  KEY `hid` (`hid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Hardware activity records' ;
 
 
@@ -32,19 +31,16 @@ CREATE TABLE `hardwares` (
   `asset` varchar(255) NOT NULL,
   `serial` varchar(255) NOT NULL,
   `description` text NOT NULL,
-  `deployed` CHAR(1) DEFAULT 'N' NOT NULL,
-  `value` varchar(50) NOT NULL,
   PRIMARY KEY  (`hid`),
   UNIQUE KEY `asset` (`asset`),
   KEY `serial` (`serial`),
-  KEY `catid` (`catid`),
   FULLTEXT KEY `desccription` (`description`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of hardware' ;
 
 
 CREATE TABLE `settings` (
-  `name` VARCHAR(100) NOT NULL,
-  `value` VARCHAR(100) NOT NULL,
+  `name` VARCHAR( 255 ) NOT NULL,
+  `value` VARCHAR( 255 ) NOT NULL,
 PRIMARY KEY (`name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Settings table' ;
 
@@ -53,8 +49,8 @@ CREATE TABLE `software` (
   `coid` int(10) NOT NULL AUTO_INCREMENT,
   `sid` int(10) NOT NULL,
   `uid` int(10) NOT NULL,
-  `issued` datetime NOT NULL,
-  `returned` datetime NOT NULL,
+  `codate` datetime NOT NULL,
+  `cidate` datetime NOT NULL,
   PRIMARY KEY  (`coid`),
   KEY `uid` (`uid`),
   KEY `sid` (`sid`)
@@ -65,19 +61,17 @@ CREATE TABLE `softwares` (
   `sid` int(10) NOT NULL auto_increment,
   `title` varchar(255) NOT NULL,
   `description` text NOT NULL,
-  `value` int(50) NOT NULL,
   `total` int(10) NOT NULL,
   `available` int(10) NOT NULL,
   PRIMARY KEY  (`SID`),
-  UNIQUE KEY `name` (`title`),
+  UNIQUE KEY `title` (`title`),
   FULLTEXT KEY `description` (`description`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of software titles' ;
 
 
 CREATE TABLE `users` (
   `uid` int(10) NOT NULL auto_increment,
-  `firstname` varchar(100) NOT NULL,
-  `lastname` varchar(100) NOT NULL,
+  `username` varchar(100) NOT NULL,
   `password` varchar(32) NOT NULL,
   `accesslevel` TINYINT(1) DEFAULT '0' NOT NULL
   `phone` varchar(25) NOT NULL,
