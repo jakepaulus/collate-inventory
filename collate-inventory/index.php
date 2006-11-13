@@ -11,7 +11,7 @@ AccessControl('0'); // The access level of this script is 0. Please see the docu
 require_once('./include/header.php'); 
 ?>
 
-<div id="main">
+
   <h1>Welcome !</h1>
     <br />
     <h3>About Collate</h3>
@@ -32,8 +32,7 @@ require_once('./include/header.php');
       deleted during installation, you can read the documenation by clicking <a href="docs/index.php">this link</a>. You can also
       view the documentation online at <a href="http://collate.info/">Collate.info</a>.
       </p>
-      
-</div>
+
 <?php require_once('./include/footer.php'); ?>
 
      

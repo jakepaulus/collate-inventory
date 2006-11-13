@@ -35,22 +35,37 @@ function view_details($search){
   $row = mysql_query("SELECT hid, category, asset, serial, description FROM hardwares WHERE asset='$search' OR serial='$search'");
 
   if(list($hid,$category,$asset,$serial,$description) = mysql_fetch_row($row)) { // User exists, display data
-   echo "<div id=\"main\">".
-	    "<h1>Details for Asset: $asset:</h1>".
+   echo "<h1>Details for Asset: $asset:</h1>".
             "<p><b>Description:</b><br />".
             "$description</p>".
             "<p><b>Other Details:</b><br />".
             "Serial Number: $serial <br /> Value: $value </p>";
   }
+
+ if($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") { ?>
+  <p><b>Re-assign Hardware:</b><br />
+    <span id="assigntip" style="display:none;"><i>You may optionally specify a username to assign this hardware to. Don't forget to allocate software licenses to this hardware once it is assigned.</i><br /></span>
+    <input id="hardwareassignment" name="hardwareassignment" type="text" size="15" /> <a href="#" onclick="new Effect.toggle($('assigntip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+    <div id="hardwareassignment_update" class="autocomplete"></div>
+      <script type="text/javascript" charset="utf-8">
+      // <![CDATA[
+        new Ajax.Autocompleter('hardwareassignment','hardwareassignment_update','_users.php');
+      // ]]>      
+     </script>    
+    <p><input type="submit" value=" Submit " /></p>
+  </form>
+  
+  <?php
+  }
     // Display the history of this hardware
     echo "<h1>History</h1>".
 	   "<table width=\"100%\"><tr><th>Username</th><th>Location</th><th>Date Out</th><th>Date In</th></tr>";
 	   
-    $row = mysql_query("SELECT username, location, codate, cidate FROM hardware WHERE hid='$hid' ORDER BY cidate ASC");	   
+    $row = mysql_query("SELECT username, site, codate, cidate FROM hardware WHERE hid='$hid' ORDER BY codate DESC");	   
     while(list($username,$location,$codate,$cidate) = mysql_fetch_row($row)){
-      echo "<tr><td><a href=\"userview.php?username=$username\">$username</a></td><td>$location</td><td>$codate</td><td>$cidate</td>";
+      echo "<tr><td><a href=\"userview.php?usersearch=$username\">$username</a></td><td>$location</td><td>$codate</td><td>$cidate</td>";
     }
-    echo "</table></div>";
+    echo "</table>";
     
 } // Ends view_details function
 
@@ -71,7 +86,7 @@ function list_hardwares(){
   $sql = "SELECT MAX(hid) FROM hardwares"; // Determine the number of pages
   $result_count = mysql_query($sql);
   $totalrows = mysql_result($result_count, 0, 0);
-  $numofpages = round($totalrows/$limit, 0); // This rounds the division result up to the nearest whole number.
+  $numofpages = ceil($totalrows/$limit);
   
   if(empty($_GET['page'])) { 
     $page = "1";
@@ -96,7 +111,7 @@ function list_hardwares(){
     exit();
   }
   else { 
-    echo "<div id=\"main\">\n<h1>All Hardware Assets</h1>\n";
+    echo "<h1>All Hardware Assets</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
     echo "<table width=\"100%\">\n". // Here we actually build the HTML table
            "<tr><th align=\"left\"><a href=\"hardwareview.php?op=view_all&amp;sort=category\">Category</a></th>".
@@ -152,7 +167,6 @@ function list_hardwares(){
     if($_GET['show'] != "all" && $numofpages > "1") {
     echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
     }
-    echo "</div>";
 } // Ends list_hardwares function
 
 ?>

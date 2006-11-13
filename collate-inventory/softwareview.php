@@ -35,16 +35,14 @@ function view_details($title){
   if(list($sid,$title,$description,$total,$available) = mysql_fetch_row($row)) {
 
     $deployed = $total - $available;
-    echo "<div id=\"main\">".
-	    "<h1>Details for $title:</h1>".
+    echo "<h1>Details for $title:</h1>".
             "<p><b>Description:</b><br />".
             "$description</p>".
             "<p><b>Other Details:</b><br />".
             "Licenses in use: $deployed <br /> Licenses available: $available </p>";
   }
     // Display the usernames of those who have licenses checked out
-    echo "<h1>Good Title:</h1>".
-           "</div>";
+    echo "<h1>Used Licenses:</h1>";
     
 } // Ends view_details function
 
@@ -93,7 +91,7 @@ function list_softwares(){
     exit();
   }
   else {
-    echo "<div id=\"main\"><h1>All Software Titles</h1>\n";
+    echo "<h1>All Software Titles</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
     echo "<table width=\"100%\">\n".
             "<tr><th align=\"left\"><a href=\"softwareview.php?op=view_all&amp;sort=title\">Title</a></th>".
@@ -147,7 +145,6 @@ function list_softwares(){
     if($_GET['show'] != "all" && $numofpages > "1") {
     echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
     }
-    echo "</div>";
   }  
 } // Ends list_softwares function
 

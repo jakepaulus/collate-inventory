@@ -22,10 +22,11 @@ switch($op){
 
 function add_software(){
   require_once('./include/header.php');
-  echo "<div id=\"main\">";
+
   // Display new-software form that posts to software_process.php 
 ?>
   <h1>Add Software To Your Library:</h1>
+  <br />
   <form id="new_software" action="software_process.php?op=new" method="post">
     <p>Software Title:<br />
     <input id="title" name="title" type="text" size="30" /></p>
@@ -36,7 +37,6 @@ function add_software(){
     <input type="submit" value=" Submit " />
   </form>
 <?php
-  echo "</div>";
   require_once('./include/footer.php');
 }
 ?>

@@ -26,7 +26,6 @@ require_once('./include/footer.php');
 function form() {
 global $CI;
 require_once('./include/header.php');
-echo "<div id=\"main\">";
 ?>
 
 <h1>Settings</h1>
@@ -52,6 +51,18 @@ echo "<div id=\"main\">";
     <option <?php if($CI['settings']['checklevel5perms'] == "0") { echo "selected=\"selected\""; } ?> value="0">No</option>
   </select></p>
   
+  <p>Authentication type:<br />
+  <select name="ldapauth">
+    <option <?php if($CI['settings']['ldapauth'] == "1") { echo "selected=\"selected\""; } ?> value="1">LDAP</option>
+    <option <?php if($CI['settings']['ldapauth'] == "0") { echo "selected=\"selected\""; } ?> value="0">DB</option>
+  </select></p>
+  
+  <p>Automatically Generate Asset Numbers:<br />
+  <select name="autoasset">
+    <option <?php if($CI['settings']['autoasset'] == "1") { echo "selected=\"selected\""; } ?> value="1">Yes</option>
+    <option <?php if($CI['settings']['autoasset'] == "0") { echo "selected=\"selected\""; } ?> value="0">No</option>
+  </select></p>
+  
   <p>Collate:Inventory administrator's name:<br />
   <input id="adminname" name="adminname" type="text" size="" value="<?php echo $CI['settings']['adminname']; ?>" /></p>
   
@@ -66,7 +77,7 @@ echo "<div id=\"main\">";
 </form>
 
 <?php
-echo "</div>";
+require_once('./include/footer.php');
 } // Ends form function
 
 
@@ -86,6 +97,8 @@ function process() {
   $adminname = clean($_POST['adminname']);
   $adminphone = clean($_POST['adminphone']);
   $adminemail = clean($_POST['adminemail']);
+  $ldapauth = clean($_POST['ldapauth']);
+  $autoasset = clean($_POST['autoasset']);
   
   $result = "";
   
@@ -104,64 +117,49 @@ function process() {
   }
   
   if($CI['settings']['checklevel1perms'] != $checklevel1perms) {
+    if($checklevel1perms == "1") { $value = "WILL"; } else { $value = "WILL NOT"; }
     $sql = "UPDATE settings SET value='$checklevel1perms' WHERE name='checklevel1perms'";
     mysql_query($sql);
-    if (mysql_affected_rows() == "1"){
-    $result .= "Level 1 Permission check setting successfully modified. <br />";
-    }
-    else {
-      $result .= "Level 1 Permission check settings NOT successfully changed! <br />";
-    }
+    $result .= "Permission $value be verified before allowing a user to view inventory.<br />";
   }
   if($CI['settings']['checklevel3perms'] != $checklevel3perms) {
+    if($checklevel3perms == "1") { $value = "WILL"; } else { $value = "WILL NOT"; }
     $sql = "UPDATE settings SET value='$checklevel3perms' WHERE name='checklevel3perms'";
     mysql_query($sql);
-    if (mysql_affected_rows() == "1"){
-      $result .= "Level 3 Permission check setting successfully modified. <br />";
-    }
-    else {
-      $result .= "Level 3 Permission check settings NOT successfully changed! <br />";
-    }
+    $result .= "Permission $value be verified before allowing a user to modify inventory.<br />";
   }
   if($CI['settings']['checklevel5perms'] != $checklevel5perms) {
+    if($checklevel5perms == "1") { $value = "WILL"; } else { $value = "WILL NOT"; }
     $sql = "UPDATE settings SET value='$checklevel5perms' WHERE name='checklevel5perms'";
     mysql_query($sql);
-    if (mysql_affected_rows() == "1"){
-    $result .= "Level 5 Permission check setting successfully modified. <br />";
-    }
-    else {
-      $result .= "Level 5 Permission check settings NOT successfully changed! <br />";
-    }
+    $result .= "Permission $value be verified before allowing a user to modify Collate:Inventory settings.<br />";
   }
   if($CI['settings']['adminname'] != $adminname) {
     $sql = "UPDATE settings SET value='$adminname' WHERE name='adminname'";
     mysql_query($sql);
-    if (mysql_affected_rows() == "1"){
-    $result .= "Collate:Inventory administrator's name setting successfully modified. <br />";
-    }
-    else {
-      $result .= "Collate:Inventory administrator's name setting NOT successfully changed! <br />";
-    }
+    $result .= "The administrator's name is now recorded as \"$adminname\"<br />";
   }
   if($CI['settings']['adminphone'] != $adminphone) {
     $sql = "UPDATE settings SET value='$adminphone' WHERE name='adminphone'";
     mysql_query($sql);
-    if (mysql_affected_rows() == "1"){
-    $result .= "Collate:Inventory administrator's telephone number setting successfully modified. <br />";
-    }
-    else {
-      $result .= "Collate:Inventory administrator's telephone number setting NOT successfully changed! <br />";
-    }
+    $result .= "The administrator's telephone number is now recorded as \"$adminphone\"<br />";
   }
   if($CI['settings']['adminemail'] != $adminemail) {
     $sql = "UPDATE settings SET value='$adminemail' WHERE name='adminemail'";
     mysql_query($sql);
-    if (mysql_affected_rows() == "1"){
-    $result .= "Collate:Inventory administrator's email address setting successfully modified. <br />";
-    }
-    else {
-      $result .= "Collate:Inventory administrator's email address setting NOT successfully changed! <br />";
-    }
+    $result .= "The administrator's email address is now recorded as \"$adminemail\"<br />";
+  }
+  if($CI['settings']['ldapauth'] != $ldapauth) {
+    if($ldapauth == "1") { $value = "LDAP"; } else { $value = "DB"; }
+    $sql = "UPDATE settings SET value='$ldapauth' WHERE name='ldapauth'";
+    mysql_query($sql);
+    $result .= "Authenticatication type is now $value.<br />";
+  }
+  if($CI['settings']['autoasset'] != $autoasset) {
+    if($autoasset == "1") { $value = "ON"; } else { $value = "OFF"; }
+    $sql = "UPDATE settings SET value='$autoasset' WHERE name='autoasset'";
+    mysql_query($sql);
+    $result .= "Automatic asset number generation is now $value.<br />";
   }
 
   require_once('./include/infopage.php');

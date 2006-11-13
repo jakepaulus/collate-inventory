@@ -5,7 +5,15 @@
     
   require_once('./include/db_connect.php');
   
-  $search = $_POST['search'];
+  // This if/else is necessary because we have more than one autocompleting
+  // field on the same page POSTing to this script.
+  
+  if(strlen($_POST['search'] < "3")) {
+    $search = $_POST['hardwaresearch'];
+  }
+  else {
+    $search = $_POST['search'];
+  }
 
   if(strlen($search) < "3"){ return;} // Prevent infinite loops and other bad stuff.
   

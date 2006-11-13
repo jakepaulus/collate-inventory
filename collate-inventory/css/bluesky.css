@@ -40,7 +40,7 @@ body {
 /* header: */
 
 #header {
-    position: relative; 
+    float: top; 
     width: 100%;
     height: 2.8em;
     color: #fff;
@@ -64,9 +64,7 @@ body {
 
 #left {
     width: 25%; 
-    display: inline;
-
-    position: relative; 
+    float: left; 
     font-size: 0.9em;
 }
 
@@ -166,13 +164,9 @@ font-size: .9em;
 
 #content {
     float: right; 
-    display: inline; 
-    position: relative; 
     width: 75%; 
     font-size: 0.75em;
-    
     background-color: #fff;
-
     border-right: 0.2em solid #4284B5;
     border-bottom: 0.2em solid #4284B5;
 }
@@ -223,7 +217,7 @@ div.path {
 }
 
 #main {
-    padding: 0.5em 1.5em 1.5em 0.7em;
+    padding: 0.5em 1.5em 2em 0.7em;
     border-bottom: 0.2em solid #7BA5C6;
     border-right: 0.2em solid #7BA5C6;
 }

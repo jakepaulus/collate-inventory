@@ -1,8 +1,8 @@
 CREATE DATABASE `collate` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
 USE collate;
 
-CREATE TABLE `locations` (
-  `lid` INT( 10 ) NOT NULL AUTO_INCREMENT ,
+CREATE TABLE `site` (
+  `sid` INT( 10 ) NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR( 75 ) NOT NULL ,
   `address` VARCHAR( 255 ) NOT NULL ,
   `city` VARCHAR( 75 ) NOT NULL ,
@@ -85,4 +85,3 @@ CREATE TABLE `users` (
   PRIMARY KEY  (`uid`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='User Table' ;
-

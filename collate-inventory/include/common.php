@@ -65,10 +65,10 @@ while ($column = mysql_fetch_assoc($result)) {
     $_SESSION['returnpage'] = $_SERVER['REQUEST_URI']; // return the user to where they came from with this var
     $extrameta = "<meta http-equiv=\"refresh\" content=\"5;url=login.php\" />"; // We have to meta redirect instead of using header() because
 													   // We're trying to pass session variables.
-    $result = "The administrator of this application requires you to login to use this feature. Please click <a href=\"login.php\">here</a>";
+    $result = "The administrator of this application requires you to login to use this feature. Please click <a href=\"login.php\">here</a> if you're not redirected automatically.";
 
     include_once('header.php'); // This is included way over here so that the extrameta var can be put within the html <head> and validate.
-    require_once( "./infopage.php" );
+    require_once( "./include/infopage.php" );
     exit(); // If we're requiring a login, we don't want any further script processing at all. 
   }
   
@@ -95,7 +95,7 @@ while ($column = mysql_fetch_assoc($result)) {
   // if we've gotten this far in the function, we've not met any condition to allow access so access is denied.
   $result = "I'm sorry. You do not have sufficient access to use this resource. Please contact $adminname ".
                "to have have this issue addressed if you believe you should have access. $email $phone";
-  require_once('./infopage.php');
+  require_once('./include/infopage.php');
   exit();  
   
 } // Ends AccessControl function

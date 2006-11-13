@@ -1,10 +1,6 @@
 
 <?php
-require_once('header.php');
+require_once('./include/header.php');
 
-echo "<div id=\"main\">";
-
-echo "</div>";
-
-require_once('footer.php');
+require_once('./include/footer.php');
 ?>

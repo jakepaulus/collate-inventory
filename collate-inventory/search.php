@@ -8,9 +8,5 @@
 require_once('./include/common.php');
 require_once('./include/header.php');
 
-echo "<div id=\"main\">";
-
-echo "</div>";
-
 require_once('./include/footer.php');
 ?>

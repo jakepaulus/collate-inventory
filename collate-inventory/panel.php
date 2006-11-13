@@ -6,11 +6,19 @@
  * program. 
  */
 require_once('./include/common.php');
-AccessControl('5'); // The access level of this script is 3. Please see the documentation for this function in common.php.
+AccessControl('3'); // The access level of this script is 3. Please see the documentation for this function in common.php.
 require_once('./include/header.php');
-echo "<div id=\"main\">";
-
-
-echo "</div>";
+?>
+<br />
+<table width="100%">
+<tr>
+<td align="center" style="width: 25%"><a href="./user.php?op=manage"><img height="48" width="48" alt="Users" src="./images/users.png" /><br /></a><b>Manage Users</b></td>
+<td align="center" style="width: 25%"><a href="./hardware.php?op=manage"><img height="48" width="48" alt="Hardware" src="./images/hardware.png" /></a><br /><b>Manage Hardware</b></td>
+<td align="center" style="width: 25%"><a href="./sites.php"><img height="48" width="48" alt="Sites" src="./images/sites.png" /></a><br /><b>Manage Sites</b></td>
+<td align="center" style="width: 25%"><?php if($CI['user']['accesslevel'] == "5"){ ?><a href="./settings.php"><img height="48" width="48" alt="Settings" src="./images/settings.png" /></a><br /><b>Settings</b><?php } ?></td>
+</tr>
+</table>
+<br />
+<?
 require_once('./include/footer.php');
 ?>

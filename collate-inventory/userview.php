@@ -41,39 +41,80 @@ function view_details($username){
   global $CI;
   AccessControl("1"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
  
-  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+
   
-  $username = strtolower($_GET['username']);
+  $username = strtolower($_GET['usersearch']);
   
-  if($username == "system") { // We don't want to use our template for user details for the system account.
-    $result = "System is a special account used to assign assets to that are considered \"in inventory.\"";
+
+  $row = mysql_query("SELECT uid, username, phone, altphone, address, city, state, zip, site, email FROM users WHERE username='$username'");
+  if(mysql_num_rows($row) != "1") { // This is not a valid username
+    $result = "Please enter a valid username.";
     require_once('./include/infopage.php');
     exit();
-  }
-  
-  require_once('./include/db_connect.php');
-  $row = mysql_query("SELECT uid, username, phone, altphone, address, city, state, zip, lid, email FROM users WHERE username='$username'");
-
-  if(list($uid,$username,$phone,$altphone,$address,$city,$state,$zip,$lid,$email) = mysql_fetch_row($row)) { // User exists, display data
-    require_once('./include/header.php');
-    echo "<div id=\"main\">".
-	    "<h1>Details for $username:</h1>".
-            "<p><b>Address:</b><br />".
-            "$address <br /> $city, $state $zip</p>".
-            "<p><b>Telephone Numbers:</b><br />".
-            "Primary: $phone<br />Alternate: $altphone</p>".
-            "<p><b>Email Address:</b><br />".
-            "<a href=\"mailto:$email\">$email</a>";
-	 
-    //Display hardware that belongs to the user:
-    
-        
-    echo "</div>";
-  }  
-  else { // a row doesn't exist with that user's name: show error
-    $result = "I'm sorry, you must supply a valid username in order for me to find what you're looking for.";
-    require_once('./include/infopage.php');
   } 
+
+  list($uid,$username,$phone,$altphone, $address, $city,$state,$zip,$site,$email) = mysql_fetch_row($row);
+    require_once('./include/header.php');
+   
+    if($username != "system") {
+      echo "<h1>Details for $username:</h1><br />";
+      
+      if($site != "remote" && $site != NULL) {
+        echo "<p>This user is located at <b>$site</b></p>";
+      }
+      
+      echo "<p><b>Address:</b><br />".
+              "$address <br /> $city, $state $zip</p>".
+              "<p><b>Telephone Numbers:</b><br />".
+              "Primary: $phone<br />Alternate: $altphone</p>".
+              "<p><b>Email Address:</b><br />".
+              "<a href=\"mailto:$email\">$email</a>";
+	 
+      //Display hardware that belongs to the user:
+     
+     if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") && $username != "system") { ?>
+     <form id="assign_hardware" action="hardware_process.php?op=reassign" method="post">
+     <p><b>Assign Hardware:</b><br />
+    <span id="hardwaretip" style="display:none;"><i>You may optionally specify the asset/serial number of an asset to assign it to this user. Don't forget to allocate software licenses to this hardware once it is assigned.</i><br /></span>
+    <input id="hardwaresearch" name="hardwaresearch" type="text" size="15" /> <a href="#" onclick="new Effect.toggle($('hardwaretip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+    <div id="hardwaresearch_update" class="autocomplete"></div>
+      <script type="text/javascript" charset="utf-8">
+      // <![CDATA[
+        new Ajax.Autocompleter('hardwaresearch','hardwaresearch_update','_hardware.php');
+      // ]]>      
+     </script>
+     </form>     
+      <?php
+      }
+      echo "<h1>Currently Assigned Hardware:</h1>";
+    }
+    else {
+      echo "<h1>System</h1>".
+             "<p>System is a special account used to assign assets to that are considered \"In Inventory\"</p>".
+             "<h1>Hardware in Inventory:</h1>";
+    }
+    $row = mysql_query("SELECT hid, category, asset, serial FROM hardwares WHERE username='$username' ORDER BY asset ASC");
+    if(mysql_num_rows($row) < "1") {
+      echo "<p>There is no hardware in the database assigned to this user.</p>";
+    }
+    else {
+      echo "<table width=\"100%\">\n". 
+             "<tr><th align=\"left\">Category</th><th align=\"left\">Asset</th><th align=\"left\">Serial</th></tr>\n";
+  
+      while(list($hid,$category,$asset,$serial) = mysql_fetch_row($row)) { 
+        if ($bgcolor == "#E0E0E0"){  // This if - else rotates the background color of each row in the list.
+          $bgcolor = "#FFFFFF";
+        }
+        else {
+          $bgcolor = "#E0E0E0";
+        }
+        echo "<tr bgcolor=\"$bgcolor\"><td>$category</td><td><a href=\"hardwareview.php?op=view_details&amp;search=$asset\">$asset</a></td><td><a href=\"hardwareview.php?op=view_details&amp;search=$serial\">$serial</a></td>";
+	if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") && $username != "system") { echo "<td><a href=\"./hardware_process.php?unassign=$asset\"><img src=\"./images/remove.png\" alt=\"X\"></td></tr>\n"; }
+      }
+    }
+    echo "</table>"; // Here the HTML table ends.     
+    
 
 } // Ends view_details function
 
@@ -94,7 +135,7 @@ function list_users(){
   $sql = "SELECT MAX(uid) FROM users"; // Determine the number of pages
   $result_count = mysql_query($sql);
   $totalrows = mysql_result($result_count, 0, 0);
-  $numofpages = round($totalrows/$limit, 0); // This rounds the division result up to the nearest whole number.
+  $numofpages = ceil($totalrows/$limit); 
   
   if(empty($_GET['page'])) { 
     $page = "1";
@@ -115,11 +156,11 @@ function list_users(){
   
   if(mysql_num_rows($result) == "0") {
     $result = "No database records were found. Please add records using the \"Add..\" links to the left.";
-    require_once('./infopage.php');
+    require_once('./include/infopage.php');
     exit();
   }
   else { 
-    echo "<div id=\"main\">\n<h1>All Users</h1>\n";
+    echo "<h1>All Users</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
     echo "<table width=\"100%\">\n". // Here we actually build the HTML table
            "<tr><th align=\"left\"><a href=\"userview.php?op=view_all&amp;sort=username\">Username</a></th>".
@@ -133,14 +174,14 @@ function list_users(){
       else {
         $bgcolor = "#E0E0E0";
       }
-      echo "<tr bgcolor=\"$bgcolor\"><td><a href=\"userview.php?op=view_details&amp;username=$username\">$username</a></td><td>$city</td><td><a href=\"mailto:$email\">$email</a></td></tr>\n";
+      echo "<tr bgcolor=\"$bgcolor\"><td><a href=\"userview.php?op=view_details&amp;usersearch=$username\">$username</a></td><td>$city</td><td><a href=\"mailto:$email\">$email</a></td></tr>\n";
     }
-    echo "</table>"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
+    echo "</table><br />"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
     
     if(($_GET['show'] != "all") && ($numofpages > "1")) {
       if($page != "1") { // Generate Prev link only if previous pages exist.
         $pageprev = $page - "1";
-	echo "<a href=\"userview.php?op=view_all&amp;page=$pageprev\"> Prev</a>";
+	echo "<a href=\"userview.php?op=view_all&amp;page=$pageprev\"> Prev </a>";
       }
       $i = "1";
       while($i < $page) { // Build all page number links up to the current page
@@ -173,7 +214,6 @@ function list_users(){
     if($_GET['show'] != "all" && $numofpages > "1") {
     echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
     }
-    echo "</div>";
   }  
 } // Ends list_users function
 ?>
