@@ -37,13 +37,13 @@ if($_GET['view'] == "printable"){ ?>
 	
 <div class="path">
   <table width="100%">
-    <tr><td align="left"><a href="search.php">Advanced Search</a> 
-      <?php if($CI['settings']['checklevel5perms'] == "0" || $CI['user']['accesslevel'] == "3") {  echo " | <a href=\"panel.php\">Control Panel</a>"; 
+    <tr><td align="left">
+      <?php if($CI['settings']['checklevel5perms'] == "0" || $CI['user']['accesslevel'] == "3") {  echo "<a href=\"panel.php\">Control Panel</a> | "; 
      }  
-     ?></td><td align="right"><a href="<?php
+     ?><a href="search.php">Search</a> </td><td align="right"><a href="<?php
      // This little mess here makes sure that the print URL is formed properly.
 
-    echo $_SERVER['REQUEST_URI']; 
+    echo "http://".$_SERVER['SERVER_NAME'].htmlentities($_SERVER['REQUEST_URI']); 
     if(stristr($_SERVER['REQUEST_URI'], "?") == TRUE){ 
       echo "&amp;"; 
     } 

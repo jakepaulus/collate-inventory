@@ -3,19 +3,19 @@
     * an unordered list of search results to be updated into a div.
     */
     
-  require_once('./include/db_connect.php');
+  require_once('./include/common.php');
   
   // This if/else is necessary because we have more than one autocompleting
   // field on the same page POSTing to this script.
   
-  if(strlen($_POST['search'] < "3")) {
-    $search = $_POST['hardwaresearch'];
+  if(strlen(clean($_POST['search']) < "3")) {
+    $search = clean($_POST['hardwaresearch']);
   }
   else {
-    $search = $_POST['search'];
+    $search = clean($_POST['search']);
   }
 
-  if(strlen($search) < "3"){ return;} // Prevent infinite loops and other bad stuff.
+  if(strlen($search) < "3"){ exit();} // Prevent infinite loops and other bad stuff.
   
   echo "<ul>";
   

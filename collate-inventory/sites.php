@@ -6,17 +6,16 @@
  * program. 
  */
 require_once('./include/common.php');
-require_once('./include/header.php');
 
 $op = $_GET['op'];
 
 switch($op){
 
-  case "add"; // New Site From
+  case "add"; 
   add_site();
   break;
   
-  case "new"; // Process new Site Form
+  case "new";
   process_new_site();
   break;
 
@@ -33,6 +32,7 @@ switch($op){
 function list_sites() {
   global $CI;
   AccessControl('1');
+  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
   
   $limit = "5";
   $sql = "SELECT COUNT(*) FROM sites"; // To determine the number of pages
@@ -42,7 +42,7 @@ function list_sites() {
   
   
   echo "<h1>Sites</h1>\n".
-	 "<p align=\"right\"><a href=\"./sites.php?op=add\"><img src=\"./images/add.png\" /> Add a Site </a></p><br />";
+	 "<p style=\"text-align: right;\"><a href=\"./sites.php?op=add\"><img src=\"./images/add.png\" alt=\"Add\" /> Add a Site </a></p><br />";
 
 
   if(empty($_GET['page'])) { 
@@ -54,11 +54,11 @@ function list_sites() {
   
   $lowerlimit = $page * $limit - $limit;
   if($_GET['show'] == "all") { // for print all, we really don't want to paginate, but we can still use this function
-    $sql = "SELECT sid, name, address, city, state, zip FROM sites ORDER BY $sort ASC";
+    $sql = "SELECT sid, name, address, city, state, zip FROM sites ORDER BY name ASC";
   }
   else {
     // this is MUCH faster than using a lower limit because the primary key is indexed.
-    $sql = "SELECT sid, name, address, city, state, zip FROM sites WHERE sid > $lowerlimit ORDER BY name LIMIT $limit"; 
+    $sql = "SELECT sid, name, address, city, state, zip FROM sites ORDER BY name LIMIT $lowerlimit, $limit"; 
   }
   $result = mysql_query($sql);
   
@@ -68,33 +68,35 @@ function list_sites() {
     exit();
   }
   else { 
-  echo "<table width=\"100%\">";
+  echo "<table width=\"100%\">\n";
   
   while(list($sid,$name,$address,$city,$state,$zip) = mysql_fetch_row($result)) {
    
-    echo "<tr><td><b>$name</b></td><td><a href=\"./sites.php?op=delete&amp;name=$name\"><img src=\"./images/remove.png\" alt=\"remove\"></a></td></tr><tr><td>$address</td></tr><tr><td>$city, $state $zip</td></tr><tr><td><hr /></td></tr>";
+    echo "<tr><td><b>$name</b></td><td><a href=\"./sites.php?op=delete&amp;name=$name\">".
+           "<img src=\"./images/remove.png\" alt=\"remove\" /></a></td></tr><tr><td>$address</td></tr>".
+	   "<tr><td>$city, $state $zip</td></tr><tr><td><hr class=\"division\" /></td></tr>\n";
   }
-  echo "</table>";
+  echo "</table>\n";
    
     if(($_GET['show'] != "all") && ($numofpages > "1")) {
       if($page != "1") { // Generate Prev link only if previous pages exist.
         $pageprev = $page - "1";
-	echo "<a href=\"sites.php?op=view_all&amp;page=$pageprev\"> Prev</a>";
+	echo "<a href=\"sites.php?page=$pageprev\"> Prev</a>";
       }
       $i = "1";
       while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"sites.php?op=view_all&amp;page=$i\">$i</a>";
+        echo "<a href=\"sites.php?page=$i\">$i</a>";
 	$i++;
       }
       echo "[$page]"; // List Current page
       $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
       while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"sites.php?op=view_all&amp;page=$i\"> $i </a>";
+        echo "<a href=\"sites.php?page=$i\"> $i </a>";
         $i++;
       }
       if($page < $numofpages) { // Generate Next link if there is a page after this one
         $nextpage = $page + "1";
-	echo "<a href=\"sites.php?op=view_all&amp;page=$nextpage\"> Next </a>";
+	echo "<a href=\"sites.php?page=$nextpage\"> Next </a>";
       }
     }
     
@@ -110,7 +112,14 @@ function list_sites() {
     }
     echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
     if($_GET['show'] != "all" && $numofpages > "1") {
-    echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
+       echo "<a href=\"".$_SERVER['REQUEST_URI']; 
+    if(stristr($_SERVER['REQUEST_URI'], "?") == TRUE){ 
+      echo "&amp;"; 
+    } 
+    else {
+      echo "?";
+    }
+    echo "show=all\">Show all results on one page</a>";
     }
   }  
 require_once('./include/footer.php');
@@ -120,7 +129,8 @@ require_once('./include/footer.php');
 function add_site(){
   global $CI;
   AccessControl('3');
-  require_once('./include/header.php');
+  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  
   ?>
   <h1>Add a Site</h1>  
   <br />
@@ -142,15 +152,10 @@ function add_site(){
   require_once('./include/footer.php');
 }// Ends add_site function
 
-function clean($variable){
-  $variable = trim(strip_tags(nl2br($variable)));
-  return $variable;
-}
-
 function  process_new_site() {
   global $CI;
   AccessControl('3');
-  require_once('./include/header.php');
+  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
   
   if (strlen($_POST['name']) < "1" || strlen($_POST['address']) < "1" || strlen($_POST['city']) < "1" || strlen($_POST['state']) < "1" || strlen($_POST['zip']) < "1" ){ 
     $result = "All fields except are required. Please go back and ensure all fields are completed."; 
@@ -186,12 +191,31 @@ function  process_new_site() {
 function delete_site() {
   global $CI;
   AccessControl('3');
-  require_once('./include/header.php');
+  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
   
   $name = clean($_GET['name']);
   
   // We're using this same function to confirm the user's action and process the row drop in the database
   if($_GET['confirm'] != "yes") { // draw the confirmation page
+  
+    // First we check to see if there are any users or hardware still at this site. If there are, we wont let the user delete the site.
+    $sql = "SELECT * FROM users WHERE site='$name'";
+    $test = mysql_query($sql);
+    if(mysql_num_rows($test) != "0") { // There are users at this site.
+      $result = "There are users are users assigned to the site called \"$name\". This site cannot be deleted until these users are re-assigned to a different site. \n".
+                   "This can be done in the Manage Users section of the Control Panel."; // This should also include a link to the search results for a list of all of the users at this site.
+      require_once('./include/infopage.php');
+    }
+    
+    $sql = "SELECT * FROM hardware WHERE site='$name' AND cidate='0000-00-00 00:00:00'";
+    $test = mysql_query($sql);
+    if(mysql_num_rows($test) != "0") { // There is hardware at this site.
+      $result = "There is hardware currently located at the site called \"$name\". This site cannot be deleted until this is corrected. You can use the Advanced Search \n".
+                   "Page to find all hardware at this site and reassign it."; // I would like to replace this with a link to the search results for this.
+      require_once('./include/infopage.php');
+    }
+        
+    // There aren't any users or hardware at the site, we'll just make sure the user is sure they want to delete the site.
     $sql = "SELECT name, address, city, state, zip FROM sites WHERE name='$name'";
     $row = mysql_query($sql);
     while(list($name,$address,$city,$state,$zip) = mysql_fetch_row($row)) { // They are requesting deletion of a valid site

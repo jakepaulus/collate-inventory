@@ -100,4 +100,18 @@ while ($column = mysql_fetch_assoc($result)) {
   
 } // Ends AccessControl function
 
+
+
+
+// --------------- Clean Function ---------------------------------------------------
+
+/**
+ * This is a very simple sanitizing function to execute on user's input.
+ */
+
+function clean($variable){ // This function needs to be moved to a separate script that will house all user-input cleaning functions.
+  $variable = nl2br(strip_tags(trim($variable))); 
+  return $variable;
+}
+
 ?>

@@ -1,13 +1,13 @@
 <div class="left">
-  <form action="userview.php" method="get">
+  <form action="users.php" method="get">
     <div class="left_nav">
       <h3>Users</h3>
       <div class="inner_box">
         <ul>
-          <li><a href="user.php">Add User</a></li>
-          <li><a href="userview.php?op=view_all">List Users</a></li>
+          <li><a href="users.php?op=add">Add User</a></li>
+          <li><a href="users.php">List Users</a></li>
           <li>User Name:</li>
-          <li><input id="usersearch" name="usersearch" type="text" size="15" /></li>
+          <li><input name="op" type="hidden" value="show" /><input id="usersearch" name="usersearch" type="text" size="15" /></li>
           <li><input type="submit" value=" Go " /></li>
         </ul>
       </div>
@@ -20,15 +20,15 @@
     </div>
   </form>
   &nbsp; 
-  <form action="hardwareview.php" method="get">
+  <form action="hardware.php?op=show" method="get">
     <div class="left_nav">
       <h3>Hardware</h3>
       <div class="inner_box">
         <ul>
-          <li><a href="hardware.php">Add Hardware</a></li>
-          <li><a href="hardwareview.php?op=view_all">List Hardware</a></li>
+          <li><a href="hardware.php?op=add">Add Hardware</a></li>
+          <li><a href="hardware.php">List Hardware</a></li>
 	<li>Asset/Serial Number:</li>
-          <li><input id="search" name="search" type="text" size="15" /></li>
+          <li><input name="op" type="hidden" value="show" /><input id="search" name="search" type="text" size="15" /></li>
           <li><input type="submit" value=" Go " /></li>
         </ul>
       </div>

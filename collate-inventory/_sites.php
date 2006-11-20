@@ -3,9 +3,9 @@
     * an unordered list of search results to be updated into a div.
     */
 
-  require_once('include/db_connect.php');
+  require_once('include/common.php');
 
-  $search = $_POST['sitesearch'];
+  $search = clean($_POST['sitesearch']);
 
   if(strlen($search) < "3"){ exit(); } // Prevent infinite loops and other bad stuff.
   

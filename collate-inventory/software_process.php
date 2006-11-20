@@ -25,7 +25,7 @@ switch($op){
 }
 
 function clean($variable){
-  $variable = trim(strip_tags(nl2br($variable)));
+  $variable = nl2br(strip_tags(trim($variable)));
   return $variable;
 }
 

@@ -62,7 +62,7 @@ function list_softwares(){
   }
 
   $limit = "25";    // This is the number of rows per page to be displayed. 
-  $query_count   = "SELECT MAX(sid) FROM softwares";
+  $query_count   = "SELECT COUNT(*) FROM softwares";
   $result_count   = mysql_query($query_count);    
   $totalrows       = mysql_result($result_count, 0, 0);
   $numofpages   = round($totalrows/$limit, 0);  // This rounds the division result up to the nearest whole number.
@@ -80,7 +80,7 @@ function list_softwares(){
   }
   else {
     // this is MUCH faster than using a lower limit because the primary key is indexed.
-    $sql  = "SELECT title, total, available FROM softwares WHERE sid > $lowerlimit ORDER BY $sort LIMIT $limit";
+    $sql  = "SELECT title, total, available FROM softwares ORDER BY $sort LIMIT $lowerlimit, $limit";
   }
   
  $result = mysql_query($sql); 

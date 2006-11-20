@@ -23,7 +23,7 @@ body {
     font-family: "Lucida Grande", Verdana, Arial, sans-serif;
     line-height: 1.1em;
     text-align: center;
-    
+    color: #000;
     background-color: #A5DDF8;
     background-image: url(../images/background.png);
     background-repeat: repeat-x;
@@ -40,7 +40,6 @@ body {
 /* header: */
 
 #header {
-    float: top; 
     width: 100%;
     height: 2.8em;
     color: #fff;
@@ -55,7 +54,6 @@ body {
     font-weight: bold;
     font-size: 1.9em;
     letter-spacing: -0.1em !important;
-    letter-spacing: -0.2em;
     line-height: 1.2em;
 }
 
@@ -222,34 +220,19 @@ div.path {
     border-right: 0.2em solid #7BA5C6;
 }
 
-div.img_left, div.img_right {
-    border-bottom: 0.09em solid #4284B5;
-    border-right: 0.1em solid #4284B5;
+hr.head {
+    border: 0;
+    height: 1px;
+    color: #000;
+    background-color: #000;
 }
 
-div.img_left {
-    float: left; 
-    margin: 0.5em 0.8em 0em 0em;
+hr.division {
+    border: 0;
+    height: 2px;
+    color: #E0E0E0;
+    background-color: #E0E0E0;
 }
-
-div.img_right {
-    float: right; 
-    margin: 0.5em 0em 0em 0.8em;
-}
-
-div.img_left img, div.img_right img {
-    display: block;
-    border: 0.35em solid #7BA5C6;
-    margin: 0;
-    padding: 0;
-}
-
-/* this clears floating (e.g images) */
-br.clear {
-    clear: both;
-    display: none;
-}
-
 
 /* footer: */
 

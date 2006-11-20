@@ -80,13 +80,6 @@ require_once('./include/header.php');
 require_once('./include/footer.php');
 } // Ends form function
 
-
-function clean($variable){
-  $variable = trim(strip_tags(nl2br($variable)));
-  return $variable;
-}
-
-
 function process() {
   global $CI;
   require_once('./include/header.php');

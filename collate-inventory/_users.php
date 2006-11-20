@@ -3,13 +3,13 @@
     * an unordered list of search results to be updated into a div.
     */
 
-  require_once('include/db_connect.php');
+  require_once('include/common.php');
 
-   if(strlen($_POST['usersearch'] < "3")) {
-    $search = $_POST['hardwareassignment'];
+   if(strlen(clean($_POST['usersearch'] < "3"))) {
+    $search = clean($_POST['username']);
   }
   else {
-    $search = $_POST['usersearch'];
+    $search = clean($_POST['usersearch']);
   }
 
   if(strlen($search) < "3"){ return;} // Prevent infinite loops and other bad stuff.

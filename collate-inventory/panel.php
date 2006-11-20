@@ -12,10 +12,18 @@ require_once('./include/header.php');
 <br />
 <table width="100%">
 <tr>
-<td align="center" style="width: 25%"><a href="./user.php?op=manage"><img height="48" width="48" alt="Users" src="./images/users.png" /><br /></a><b>Manage Users</b></td>
-<td align="center" style="width: 25%"><a href="./hardware.php?op=manage"><img height="48" width="48" alt="Hardware" src="./images/hardware.png" /></a><br /><b>Manage Hardware</b></td>
+<td align="center" style="width: 25%"><a href="./users.php"><img height="48" width="48" alt="Users" src="./images/users.png" /><br /></a><b>Manage Users</b></td>
+<td align="center" style="width: 25%"><a href="./hardware.php"><img height="48" width="48" alt="Hardware" src="./images/hardware.png" /></a><br /><b>Manage Hardware</b></td>
+<td align="center" style="width: 25%"><a href="./software.php?op=manage"><img height="48" width="48" alt="Users" src="./images/software.png" /><br /></a><b>Manage Software</b></td>
 <td align="center" style="width: 25%"><a href="./sites.php"><img height="48" width="48" alt="Sites" src="./images/sites.png" /></a><br /><b>Manage Sites</b></td>
-<td align="center" style="width: 25%"><?php if($CI['user']['accesslevel'] == "5"){ ?><a href="./settings.php"><img height="48" width="48" alt="Settings" src="./images/settings.png" /></a><br /><b>Settings</b><?php } ?></td>
+</tr>
+<tr><td><br /></td></tr>
+<tr>
+<td align="center" style="width: 25%"><a href="./docs/index.php"><img height="48" width="48" alt="[?]" src="./images/help_large.png" /></a><br />
+<b>Documentation</b></td>
+<td align="center" style="width: 25%"><a href="./logs.php"><img height="48" width="48" alt="[?]" src="./images/logs.png" /></a><br />
+<b>Logs</b></td>
+<td align="center" style="width: 25%"><?php if($CI['user']['accesslevel'] == "5" || $CI['settings']['checklevel5perms'] === "0"){ ?><a href="./settings.php"><img height="48" width="48" alt="Settings" src="./images/settings.png" /></a><br /><b>Settings</b><?php } ?></td>
 </tr>
 </table>
 <br />
