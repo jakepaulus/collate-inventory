@@ -16,6 +16,10 @@ $op = $_GET['op'];
 
 switch($op){
 
+    case "delete";
+	delete_software();
+	break;
+
     case "update";
 	update_software();
 	break;
@@ -44,6 +48,49 @@ switch($op){
     list_softwares();
     break;
 }
+
+function delete_software() {
+  global $CI;
+  AccessControl('3');
+  require_once('./include/header.php');
+  
+  $title = clean($_GET['title']);
+  
+  // First check to make sure this is a valid title
+  $sql = "SELECT inuse FROM softwares WHERE title='$title'";
+  $inuse = mysql_query($sql);
+  if(mysql_num_rows($inuse) < "1") {
+    $result = "The title \"$title\" was not found in the database. Please try again. If the problem persists, please ".
+	          "contact your administrator.";
+	require_once('./include/infopage.php');
+  }
+  
+  // Make sure the software isn't checked out to anyone
+  $inuse = mysql_result($inuse, 0, 0);
+  if($inuse != "0"){
+    $result = "This software can not be deleted because licenses are currently assigned to hardware assets.";
+	require_once('./include/infopage.php');
+  }
+  
+  if($_GET['confirm'] != "yes") { // Show confirmation message or error 
+    // This is a valid asset to be retired.
+    echo "<h1>Delete $title?</h1><br />".
+         "<p><b>Are you sure you'd like to delete this software title from the database?</b>\n".
+	     "<br /><br /><a href=\"software.php?op=delete&amp;title=$title&amp;confirm=yes\">".
+	     "<img src=\"./images/apply.png\" alt=\"confirm\" /></a> &nbsp; <a href=\"software.php?op=show&amp;title=$title\">".
+	     "<img src=\"./images/cancel.png\" alt=\"cancel\" /></a>";
+      require_once('./include/footer.php');
+      exit();
+  }
+  
+  // They are sure.
+  $sql = "DELETE FROM softwares WHERE title='$title' LIMIT 1";
+  mysql_query($sql);
+  
+  $result = "$title has successfully been deleted.";
+  require_once('./include/infopage.php');
+  
+} // Ends delete_software function
 
 function update_software() {
   global $CI;
@@ -128,8 +175,7 @@ function release_license(){
   }
   
   // Everything should have worked if we get here.
-  $goto = clean($_GET['returnto']);
-  header("Location: $goto");
+  header("Location: hardware.php?op=show&search=$hardware");
 } // Ends release_license function
 
 function assign_software(){

@@ -198,6 +198,14 @@ function retire_hardware(){
 	         "when more than one asset has the same asset or serial number (which must be collectively unique.)\n";
     require_once('./include/infopage.php');
   }
+  
+  $sql = "SELECT title FROM software WHERE hid='$hid' AND cidate='0000-00-00 00:00:00'";
+  $row = mysql_query($sql);
+  if(mysql_num_rows($row) >= "1"){
+    $result = "You cannot retire this hardware because there is software still assigned to it. Please click ".
+	          "<a href=\"hardware.php?op=show&amp;search=$search\"> here</a> to view the details for this hardware.";
+	require_once('./include/infopage.php');
+  }
     
   if($_GET['confirm'] != "yes") { // Show confirmation message or error 
     // This is a valid asset to be retired.
@@ -217,33 +225,13 @@ function retire_hardware(){
 
   // They've confirmed they would like this hardware retired.
 
-  $sql = "UPDATE hardware SET cidate=NOW() WHERE asset='$search' OR serial='$search'";
+  $sql = "UPDATE hardware SET cidate=NOW() WHERE hid='$hid'";
   mysql_query($sql);
-  if(mysq_affected_rows() == "1") {
-    $result = "The hardware was successfully checked in.<br />";
-  }
-  else {
-    $result = "The hardware was NOT successfully checked in!<br />";
-  }
-
-  $sql = "UPDATE software SET hid=NULL WHERE hid='$hid'";
-  mysql_query($sql);
-  if(mysq_affected_rows() > "0") {
-    $result .= "Software was successfully returned to inventory.<br />";
-  }
-  else {
-    $result .= "There appears to be no software to return to inventory for this hardware.<br />";
-  }
-  
-
+ 
   $sql = "UPDATE hardwares SET username=NULL WHERE asset='$search' OR serial='$search'";
   mysql_query($sql);
-  if(mysq_affected_rows() == "1") {
-    $result .= "The hardware was successfully unassigned.<br />";
-  }
-  else {
-    $result .= "The hardware was NOT successfully unassigned!<br />";
-  }
+  $result = "The hardware was successfully retired.";
+ 
   
   require_once('./include/infopage.php');
 
@@ -372,23 +360,27 @@ function view_details(){
        "assign this hardware to. Don't forget to allocate software licenses to this hardware once it is assigned.<br /></div>".
 	   "<div class=\"tip\" id=\"assignsoftwaretip\" style=\"display: none;\">You may specify a software title to ".
        "assign to this hardware. <br /></div>".
-       "<h1>Details for Asset: $asset:</h1>".
-       "<table width=\"100%\"><tr><td align=\"left\">";
+       "<h1>Details for Asset: $asset:</h1>";
+       
 	  
-  if($username === NULL) {
-    echo "<b>This hardware is retired</b>";
+  if($username == NULL) {
+    echo "<b>This hardware is retired</b><br /><br />";
   }
-	  
-  echo "</td><td align=\"right\">".
-	   "<a href=\"hardware.php?op=update&amp;hardwaresearch=$asset\"><img src=\"./images/modify.png\" alt=\"update\" />".
-       "Update Description</a></td></tr></table>".
-       "<p><b>Description:</b><br />".
-       "$description</p>".
-       "<p><b>Other Details:</b><br />".
-       "Serial Number: $serial</p>";
+  else{
+    echo "<table width=\"100%\"><tr><td align=\"left\">".
+	     "<a href=\"./hardware.php?op=retire&amp;hardwaresearch=$asset\"><img src=\"./images/remove.png\" alt=\"X\" /> Retire this hardware</a>".
+         "</td><td align=\"right\">".
+	     "<a href=\"hardware.php?op=update&amp;hardwaresearch=$asset\"><img src=\"./images/modify.png\" alt=\"update\" /> ".
+         "Update Description</a></td></tr></table>";
+	   
+  } 
+  echo  "<p><b>Description:</b><br />".
+        "$description</p>".
+        "<p><b>Other Details:</b><br />".
+        "Serial Number: $serial</p>";
 
 
-  if($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") { ?>
+  if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") && $username != NULL) { ?>
   <div style="float: left; width: 45%;">
   <form action="hardware.php" method="get">  
   <p><b>Re-assign Hardware:</b><br />
@@ -423,29 +415,31 @@ function view_details(){
   <p style="clear: left;"><input type="submit" value=" Go " /></p>
   </form>
   </div>
-  
-  
-  
-  <h1>Assigned Software:</h1>
   <?php
   }
-  $sql = "SELECT title, codate FROM software WHERE hid='$hid' AND cidate='0000-00-00 00:00:00'";
-  $row = mysql_query($sql);
-  if(mysql_num_rows($row) < "1") {
-    echo "<p>No software is assigned to this hardware.</p>";
-  }
-  else {
-  echo "<table width=\"70%\">".
-       "<tr><th>Title</th><th>Check-out Date</th></tr>";
+  
+  if($username != NULL){
+    echo "<h1>Assigned Software:</h1>";
+
+    $sql = "SELECT title, codate FROM software WHERE hid='$hid' AND cidate='0000-00-00 00:00:00'";
+    $row = mysql_query($sql);
+    if(mysql_num_rows($row) < "1") {
+      echo "<p>No software is assigned to this hardware.</p>";
+    }
+    else {
+      echo "<table width=\"70%\">".
+           "<tr><th>Title</th><th>Check-out Date</th></tr>";
 	   
-  while(list($title,$codate) = mysql_fetch_row($row)) {
-    echo "<tr><td><a href=\"software.php?op=show&amp;title=$title\">$title</a></td><td>$codate</td>";
-	if($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") {
-	  echo "<td><a href=\"./software.php?op=release&amp;title=$title&amp;hardware=$asset\"><img src=\"./images/remove.png\" alt=\"X\" /></a></td>";
-	}
-	echo "</tr>";
-  }
-  echo "</table><br />";
+      while(list($title,$codate) = mysql_fetch_row($row)) {
+        echo "<tr><td><a href=\"software.php?op=show&amp;title=$title\">$title</a></td><td>$codate</td>";
+        if($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") {
+	      echo "<td><a href=\"./software.php?op=release&amp;title=$title&amp;hardware=$asset\">".
+	           "<img src=\"./images/remove.png\" alt=\"X\" /></a></td>";
+	    }
+	    echo "</tr>";
+      }
+      echo "</table><br />";
+    }
   }
 
  
@@ -478,9 +472,14 @@ function list_hardware(){
   }
   
   $limit = "25";
-  $sql = "SELECT COUNT(*) FROM hardwares"; // Determine the number of pages
+  $sql = "SELECT hid FROM hardwares WHERE username IS NOT NULL"; // Determine the number of pages
   $result_count = mysql_query($sql);
-  $totalrows = mysql_result($result_count, 0, 0);
+  $totalrows = mysql_num_rows($result_count);
+  if($totalrows < "1") {
+    $result = "No active hardware was found. Please add records using the \"Add..\" links to the left.";
+    require_once('./include/infopage.php');
+  }
+  
   $numofpages = ceil($totalrows/$limit);
   
   if(empty($_GET['page'])) { 
@@ -492,19 +491,14 @@ function list_hardware(){
   
   $lowerlimit = $page * $limit - $limit;
   if($_GET['view'] == "all") { // for show all, we really don't want to paginate, but we can still use this function
-    $sql = "SELECT hid, category, asset, serial FROM hardwares ORDER BY $sort ASC";
+    $sql = "SELECT hid, category, asset, serial FROM hardwares WHERE username IS NOT NULL ORDER BY $sort ASC";
   }
   else {
     $sql = "SELECT hid, category, asset, serial, username FROM hardwares WHERE username IS NOT NULL ORDER BY $sort LIMIT $lowerlimit, $limit"; 
   }
   $row = mysql_query($sql);
   
-  if(mysql_num_rows($row) == "0") {
-    $result = "No database records were found. Please add records using the \"Add..\" links to the left.";
-    require_once('./include/infopage.php');
-    exit();
-  }
-  else { 
+
     echo "<h1>All Hardware Assets</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
     echo "<table width=\"100%\">\n". // Here we actually build the HTML table
@@ -526,7 +520,7 @@ function list_hardware(){
       echo "</td></tr><tr><td colspan=\"5\"><hr class=\"division\" /></td></tr>\n";
     }
     echo "</table>"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
-  }
+
     
     if(($_GET['show'] != "all") && ($numofpages > "1")) {
       if($page != "1") { // Generate Prev link only if previous pages exist.
