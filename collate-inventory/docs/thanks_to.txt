@@ -1,0 +1,1 @@
+Thanks Anders Norrbring on php.net in comments for nl2br function for providing a regular expression to do <br /> to new line conversion.

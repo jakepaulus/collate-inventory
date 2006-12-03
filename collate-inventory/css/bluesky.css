@@ -160,6 +160,12 @@ font-size: .9em;
 
 /* content column: */
 
+div.tip {
+	font-style: italic;
+    font-weight: bold;
+	color: green;
+}
+
 #content {
     float: right; 
     width: 75%; 

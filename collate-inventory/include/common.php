@@ -110,7 +110,7 @@ while ($column = mysql_fetch_assoc($result)) {
  */
 
 function clean($variable){ // This function needs to be moved to a separate script that will house all user-input cleaning functions.
-  $variable = nl2br(strip_tags(trim($variable))); 
+  $variable = strip_tags(trim($variable)); 
   return $variable;
 }
 

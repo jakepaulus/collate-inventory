@@ -1,7 +1,7 @@
 CREATE DATABASE `collate` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
 USE collate;
 
-CREATE TABLE `site` (
+CREATE TABLE `sites` (
   `sid` INT( 10 ) NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR( 75 ) NOT NULL ,
   `address` VARCHAR( 255 ) NOT NULL ,
@@ -47,7 +47,7 @@ PRIMARY KEY (`name`)
 
 CREATE TABLE `software` (
   `coid` int(10) NOT NULL AUTO_INCREMENT,
-  `sid` int(10) NOT NULL,
+  `title` varchar(255) NOT NULL,
   `uid` int(10) NOT NULL,
   `codate` datetime NOT NULL,
   `cidate` datetime NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE `softwares` (
   `title` varchar(255) NOT NULL,
   `description` text NOT NULL,
   `total` int(10) NOT NULL,
-  `available` int(10) NOT NULL,
+  `inuse` int(10) DEFAULT '0' NOT NULL,
   PRIMARY KEY  (`SID`),
   UNIQUE KEY `title` (`title`),
   FULLTEXT KEY `description` (`description`)
@@ -71,17 +71,18 @@ CREATE TABLE `softwares` (
 
 CREATE TABLE `users` (
   `uid` int(10) NOT NULL auto_increment,
-  `username` varchar(100) NOT NULL,
-  `password` varchar(32) NOT NULL,
+  `username` varchar(30) NOT NULL,
+  `passwd` varchar(32) NOT NULL,
+  `tmppasswd` varchar(32) NOT NULL,
   `accesslevel` TINYINT(1) DEFAULT '0' NOT NULL
   `phone` varchar(25) NOT NULL,
   `altphone` varchar(25) NOT NULL,
   `address` varchar(100) NOT NULL,
   `city` varchar(75) NOT NULL,
   `state` varchar(75) NOT NULL,
-  `zip` varchar(25) NOT NULL,
-  `lid` int(10) NOT NULL,
+  `zip` varchar(10) NOT NULL,
+  `site` int(10) NOT NULL,
   `email` varchar(255) NOT NULL,
   PRIMARY KEY  (`uid`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `username` (`username`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='User Table' ;

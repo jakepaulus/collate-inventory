@@ -62,7 +62,7 @@ function list_sites() {
   }
   $result = mysql_query($sql);
   
-  if(mysql_num_rows($result) == "0") {
+  if($totalrows < "1") {
     $result = "No database records were found. Please add records using the \"Add..\" link above.";
     require_once('./include/infopage.php');
     exit();

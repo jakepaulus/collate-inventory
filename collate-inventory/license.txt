@@ -17,4 +17,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 
 Scriptaculous 
-Copyright (c) 2005 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
+Copyright (c) 2005 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us) and
+are licensed under the MIT license, http://wiki.script.aculo.us/scriptaculous/show/License
+
+All icons are from the Nuvola collection
+Copyright (C) David Vignoni (http://icon-king.com/) and are licensed under the LGPL, http://www.gnu.org/copyleft/lgpl.html

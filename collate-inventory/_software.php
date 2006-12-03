@@ -5,8 +5,13 @@
 
   require_once('include/common.php');
 
-  $search = clean($_POST['software_title']);
-
+  if(strlen(clean($_POST['title']) < "3")) {
+    $search = clean($_POST['softwaresearch']); 
+  }
+  else{
+    $search = clean($_POST['title']);
+  }
+ 
   if(strlen($search) < "3"){ return;} // Prevent infinite loops and other bad stuff.
   
   echo "<ul>";

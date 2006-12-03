@@ -58,6 +58,9 @@ function add_hardware(){
   require_once('./include/header.php');
   // Display new-software form that posts to software_process.php 
   ?>
+  <div id="tip" class="tip" style="display:none;"><i>This number is being generated automatically. You may remove it and type another if you wish as long as it is unique.</i><br /></div>
+  <div class="tip" id="assigntip" style="display:none;"><i>You may optionally specify a username to assign this hardware to. Don't forget to allocate software licenses to this hardware once it is assigned.</i><br /></div>
+  
   <h1>Add Hardware To Your Inventory:</h1>
   <br />
   <form id="new_hardware" action="hardware.php?op=new" method="post">
@@ -70,7 +73,7 @@ function add_hardware(){
       // ]]>      
      </script>
     <p>Asset Number: <br />
-    <span id="tip" style="display:none;"><i>This number is being generated automatically. You may remove it and type another if you wish as long as it is unique.</i><br /></span>
+    
 <?php
 if($CI['settings']['autoasset'] == "1") { 
   $sql = 'SELECT MAX(hid) FROM hardwares';
@@ -91,7 +94,6 @@ else { ?>
     <p>Description:<br />
     <textarea id="description" name="description" rows="4" cols="40"></textarea></p>
    <p>Assign Hardware: (optional)<br />
-    <span id="assigntip" style="display:none;"><i>You may optionally specify a username to assign this hardware to. Don't forget to allocate software licenses to this hardware once it is assigned.</i><br /></span>
     <input id="hardwareassignment" name="hardwareassignment" type="text" size="15" /> <a href="#" onclick="new Effect.toggle($('assigntip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
     <div id="hardwareassignment_update" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
@@ -115,7 +117,7 @@ function process_new_hardware() {
   $category = clean($_POST['category']);
   $asset = clean($_POST['asset']);
   $serial = clean($_POST['serial']);
-  $description = clean($_POST['description']);
+  $description = nl2br(clean($_POST['description']));
   $username = clean($_POST['hardwareassignment']);
   
   if(strlen($category) < "3" || strlen($asset) < "3" || strlen($serial) < "3" || strlen($description) < "3") {
@@ -269,25 +271,6 @@ function reassign_hardware() {
 	          "again. If you feel you have reached this page in error, please contact your administrator.";
 	require_once('./include/infopage.php');
   }
-  
-  list($asset,$serial,$description,$oldusername) = mysql_fetch_row($row);
-  
-  if($_GET['confirm'] != "yes"){
-   echo "<h1>Reassign Asset: $asset:</h1><br />".
-        "<p><b>Description:</b><br />".
-        "$description</p>".
-        "<p><b>Other Details:</b><br />".
-        "Serial Number: $serial <br /> Value: $value </p>".
-        "<b>Are you sure you would like to reassign this asset from \"$oldusername\" to \"$username\"?</b> This will unassign \n".
-		"all software that was assigned to this hardware. You can assign software licenses back to this hardware using \n".
-		"the Manage Software link in the Control Panel. \n".
-	    "<br /><br /><a href=\"hardware.php?op=reassign&amp;hardwaresearch=$search&amp;username=$username&amp;confirm=yes\">".
-	    "<img src=\"./images/apply.png\" alt=\"confirm\" /></a> &nbsp; <a href=\"hardware.php?op=show&amp;search=$search\">".
-	    "<img src=\"./images/cancel.png\" alt=\"cancel\" /></a>";
-      require_once('./include/footer.php');
-      exit();
-  }
-  
 
   $sql = "UPDATE hardwares SET username='$username' WHERE asset='$search' OR serial='$search'";
   mysql_query($sql);
@@ -315,11 +298,17 @@ function reassign_hardware() {
 	          "contact your administrator.";
 	require_once('./include/infopage.php');
   }
-	  
-  $result = "The hardware has been assigned from $oldusername to $username.";
-  require_once('./include/infopage.php'); 
+  // Everything should have worked find if we've gotten this far.
+  if(!empty($_GET['search'])){
+    $part2 = "&search=".clean($_GET['search']);
+  }
+  if(!empty($_GET['username'])){
+    $part2 = "&usersearch=".clean($_GET['username']);
+  }
+  $goto = clean($_GET['returnto']).$part2;
+  header("Location: $goto");
 
-}
+} // Ends reassign_hardware function
 
 function update_hardware(){
   global $CI;
@@ -343,7 +332,8 @@ function update_hardware(){
     echo "<h1>Update Description for Asset: $asset:</h1> \n".
          "<form action=\"hardware.php?op=update&amp;hardwaresearch=$search&amp;action=update\" method=\"post\"> \n".
 	     "<p>Description:<br /> \n".
-	     "<textarea id=\"description\" name=\"description\" rows=\"4\" cols=\"40\">$description</textarea></p> \n".
+	     "<textarea id=\"description\" name=\"description\" rows=\"4\" cols=\"40\">".
+		 preg_replace('/<br\\s*?\/??>/i', '', $description)."</textarea></p> \n".
 	     "<p><input type=\"submit\" value=\" Go \" /></p> \n".
 	     "</form>";
 	
@@ -351,20 +341,14 @@ function update_hardware(){
       exit();	
   }
   
-  $description = clean($_POST['description']);
+  $description = nl2br(clean($_POST['description']));
   
   $sql = "UPDATE hardwares SET description='$description' WHERE asset='$search'";
   mysql_query($sql);
   
-  if(mysql_affected_rows() == "1"){
-    $result = "The description for asset $search has been updated. Click \n".
-	          "<a href=\"hardware.php?op=show&amp;search=$search\">here</a> \n".
-			  "to view the changes.";
-  }
-  else {
-    $result = "No changes were made.";
-  }
-  require_once('./include/infopage.php'); 
+  // If we've gotten this far, everything should have worked fine. 
+  header("Location: hardware.php?op=show&search=$search");
+  
   
 }
 
@@ -384,7 +368,11 @@ function view_details(){
   }
   
   list($hid,$category,$asset,$serial,$description,$username) = mysql_fetch_row($row);
-  echo "<h1>Details for Asset: $asset:</h1>".
+  echo "<div class=\"tip\" id=\"assignhardwaretip\" style=\"display: none;\">You may specify a username to ".
+       "assign this hardware to. Don't forget to allocate software licenses to this hardware once it is assigned.<br /></div>".
+	   "<div class=\"tip\" id=\"assignsoftwaretip\" style=\"display: none;\">You may specify a software title to ".
+       "assign to this hardware. <br /></div>".
+       "<h1>Details for Asset: $asset:</h1>".
        "<table width=\"100%\"><tr><td align=\"left\">";
 	  
   if($username === NULL) {
@@ -401,12 +389,14 @@ function view_details(){
 
 
   if($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") { ?>
+  <div style="float: left; width: 45%;">
   <form action="hardware.php" method="get">  
   <p><b>Re-assign Hardware:</b><br />
-    <span id="assigntip" style="display:none;"><i>You may specify a username to assign this hardware to. Don't forget to allocate software licenses to this hardware once it is assigned.</i><br /></span>
 	<input name="op" value="reassign" type="hidden" />
-	<input id="hardwaresearch" name="hardwaresearch" type="hidden" value="<?php echo $asset; ?>" />
-    <input id="username" name="username" type="text" size="15" /> <a href="#" onclick="new Effect.toggle($('assigntip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+	<input name="hardwaresearch" type="hidden" value="<?php echo $asset; ?>" />
+	<input name="returnto" type="hidden" value="hardware.php?op=show&search=<?php echo $asset; ?>" />
+    <input id="username" name="username" type="text" size="15" /> 
+	<a href="#" onclick="new Effect.toggle($('assignhardwaretip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
     <div id="username_update" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
       // <![CDATA[
@@ -415,9 +405,52 @@ function view_details(){
      </script>    
     <p><input type="submit" value=" Go " /></p>
   </form>
+  </div>
+  <div style="float: left; width: 45%;">
+  <form action="software.php" method="get">
+  <p><input type="hidden" id="op" name="op" value="assign" />
+  <input type="hidden" name="hardwaresearch" value="<?php echo $asset; ?>" />
+  <input type="hidden" name="returnto" value="hardware.php?op=show&search=<?php echo $asset; ?>" />
+  <b>Assign a Software License:</b><br />
+  <input id="softwaresearch" name="softwaresearch" type="text" size="15" />
+  <a href="#" onclick="new Effect.toggle($('assignsoftwaretip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+  <div id="softwaresearch_update" class="autocomplete"></div>
+      <script type="text/javascript" charset="utf-8">
+      // <![CDATA[
+        new Ajax.Autocompleter('softwaresearch','softwaresearch_update','_software.php');
+      // ]]>      
+     </script>   
+  <p style="clear: left;"><input type="submit" value=" Go " /></p>
+  </form>
+  </div>
   
+  
+  
+  <h1>Assigned Software:</h1>
   <?php
   }
+  $sql = "SELECT title, codate FROM software WHERE hid='$hid' AND cidate='0000-00-00 00:00:00'";
+  $row = mysql_query($sql);
+  if(mysql_num_rows($row) < "1") {
+    echo "<p>No software is assigned to this hardware.</p>";
+  }
+  else {
+  echo "<table width=\"70%\">".
+       "<tr><th>Title</th><th>Check-out Date</th></tr>";
+	   
+  while(list($title,$codate) = mysql_fetch_row($row)) {
+    echo "<tr><td><a href=\"software.php?op=show&amp;title=$title\">$title</a></td><td>$codate</td>";
+	if($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") {
+	  echo "<td><a href=\"./software.php?op=release&amp;title=$title&amp;hardware=$asset\"><img src=\"./images/remove.png\" alt=\"X\" /></a></td>";
+	}
+	echo "</tr>";
+  }
+  echo "</table><br />";
+  }
+
+ 
+  
+
   // Display the history of this hardware
   echo "<h1>History</h1>".
 	 "<table width=\"100%\"><tr><th>Username</th><th>Location</th><th>Date Out</th><th>Date In</th></tr>";
@@ -458,7 +491,7 @@ function list_hardware(){
   }
   
   $lowerlimit = $page * $limit - $limit;
-  if($_GET['show'] == "all") { // for show all, we really don't want to paginate, but we can still use this function
+  if($_GET['view'] == "all") { // for show all, we really don't want to paginate, but we can still use this function
     $sql = "SELECT hid, category, asset, serial FROM hardwares ORDER BY $sort ASC";
   }
   else {
@@ -529,7 +562,7 @@ function list_hardware(){
     }
     echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
     if($_GET['show'] != "all" && $numofpages > "1") {
-    echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;show=all\">Show all results on one page</a>";
+    echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;view=all\">Show all results on one page</a>";
     }
   require_once('./include/footer.php');
 } // Ends list_hardwares function

@@ -14,7 +14,7 @@ require_once('./include/header.php');
 <tr>
 <td align="center" style="width: 25%"><a href="./users.php"><img height="48" width="48" alt="Users" src="./images/users.png" /><br /></a><b>Manage Users</b></td>
 <td align="center" style="width: 25%"><a href="./hardware.php"><img height="48" width="48" alt="Hardware" src="./images/hardware.png" /></a><br /><b>Manage Hardware</b></td>
-<td align="center" style="width: 25%"><a href="./software.php?op=manage"><img height="48" width="48" alt="Users" src="./images/software.png" /><br /></a><b>Manage Software</b></td>
+<td align="center" style="width: 25%"><a href="./software.php"><img height="48" width="48" alt="Users" src="./images/software.png" /><br /></a><b>Manage Software</b></td>
 <td align="center" style="width: 25%"><a href="./sites.php"><img height="48" width="48" alt="Sites" src="./images/sites.png" /></a><br /><b>Manage Sites</b></td>
 </tr>
 <tr><td><br /></td></tr>

@@ -6,7 +6,7 @@
         <ul>
           <li><a href="users.php?op=add">Add User</a></li>
           <li><a href="users.php">List Users</a></li>
-          <li>User Name:</li>
+          <li>Username:</li>
           <li><input name="op" type="hidden" value="show" /><input id="usersearch" name="usersearch" type="text" size="15" /></li>
           <li><input type="submit" value=" Go " /></li>
         </ul>
@@ -41,22 +41,22 @@
     </div>
   </form>
   &nbsp;   
-  <form action="softwareview.php" method="get">
+  <form action="software.php" method="get">
     <div class="left_nav">
       <h3>Softare</h3>   
       <div class="inner_box">
         <ul>
-          <li><a href="software.php">Add Software</a></li>
-          <li><a href="softwareview.php?op=view_all">List Software</a></li>
+          <li><a href="software.php?op=add">Add Software</a></li>
+          <li><a href="software.php">List Software</a></li>
           <li>Software Title:</li>
-          <li><input id="software_title" name="software_title" type="text" size="15" /></li>
+          <li><input name="op" type="hidden" value="show" /><input id="title" name="title" type="text" size="15" /></li>
           <li><input type="submit" value=" Go " /></li>
         </ul>
       </div>
-      <div id="software_titleupdate" class="autocomplete"></div>
+      <div id="title_update" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
       // <![CDATA[
-        new Ajax.Autocompleter('software_title','software_titleupdate','_software.php');
+        new Ajax.Autocompleter('title','title_update','_software.php');
       // ]]>
       </script>
     </div>
