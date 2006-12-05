@@ -299,7 +299,7 @@ function update_user() {
 	         "state='$state', zip='$zip', site='$site', email='$email' WHERE username='$username'";
 	}
     mysql_query($sql);
-	if(mysql_affected_rows === "1"){
+	if(mysql_affected_rows() === "1"){
       $result = "User information has been updated.<br />";
 	}
 	else {
@@ -309,7 +309,7 @@ function update_user() {
     // Now we need to update the hardware assigned to the user with new location details if the location has changed.
     $sql = "UPDATE hardware SET site='$site' WHERE username='$username' AND cidate='0000-00-00 00:00:00'";
     mysql_query($sql);
-	if(mysql_affected_rows <= "1"){
+	if(mysql_affected_rows() >= "1"){
 	  $result .= "Hardware currently assigned to the user has had its location information updated.";
 	}
 	require_once('./include/infopage.php');
