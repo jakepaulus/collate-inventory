@@ -46,8 +46,7 @@ function search(){
 	require_once('./include/footer.php');
 	exit();
   }
-  
-  if($first == "0") { // they're looking for users at a site
+  elseif($first == "0") { // they're looking for users at a site
     $first = "Username";
 	$second = "Location";
     $sql = "SELECT username, site FROM users WHERE site LIKE '%$search%' ORDER BY site";
@@ -65,8 +64,7 @@ function search(){
 	    $sql = "SELECT software.title, hardwares.asset FROM software, hardwares WHERE ".
 	           "software.hid=hardwares.hid AND title LIKE '%$search%'";
 	  }
-    }
-	if($when == 'dates'){ // They are looking within a date range.
+    }elseif($when == "dates"){ // They are looking within a date range.
       if($second == "username" || $second == "site"){
         $sql = "SELECT hardwares.asset, hardware.$second FROM hardwares, hardware ".
 	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
@@ -77,8 +75,7 @@ function search(){
 	    $sql = "SELECT software.title, hardwares.asset FROM software, hardwares WHERE ".
 	           "software.hid=hardwares.hid AND title LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
 	  }
-	}
-	if($when == 'current') { 
+	}elseif($when == "current") { 
 	  if($second == "username" || $second == "site"){
         $sql = "SELECT hardwares.asset, hardware.$second FROM hardwares, hardware ".
 	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND cidate='0000-00-00 00:00:00'";
@@ -92,15 +89,13 @@ function search(){
 	}
 	else {
 	  echo "<p>The query you have entered was not formed properly.</p>";
-	  echo "$when<br />";
 	  require_once('./include/footer.php');
 	  exit();
 	}
   }
   if($second == "username"){
     $second = "User";
-  }
-  if($second == "site") {
+  }elseif($second == "site") {
     $second = "Location";
   }
   $row = mysql_query($sql);
