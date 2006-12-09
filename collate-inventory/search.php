@@ -7,32 +7,195 @@
  */
 require_once('./include/common.php');
 
-$op = $_GET['op'];
+if(isset($_GET['op'])){
+  $op = $_GET['op'];
+}
+else {
+  $op = "show_form";
+}
 
 switch($op){
+
+  case "download";
+  download();
+  break;
   
   case "search";
+  require_once('./include/header.php');
   search();
   break;
   
   default: 
+  require_once('./include/header.php');
   show_form();
   break;
 }
 
+function download(){
+  require_once('./include/common.php');
+  $accesslevel = "1";
+  $message = "search exported";
+  AccessControl($accesslevel, $message); 
+    
+  $first = clean($_GET['first']);
+  $second = clean($_GET['second']);
+  $search = clean($_GET['search']);
+  $fromdate = clean($_GET['from_year'])."-".clean($_GET['from_month'])."-".clean($_GET['from_day']);
+  $todate = clean($_GET['to_year'])."-".clean($_GET['to_month'])."-".clean($_GET['to_day']);
+  $when = clean($_GET['when']);
+  
+
+  if(strlen($search) <= "3"){
+    require_once('./include/header.php');
+    $result = "You must enter a search phrase of four characters or more in order to find results.";
+	require_once('./include/infopage.php');
+  }
+  elseif($first == "0") { // they're looking for users at a site
+    $first = "users";
+	$link = "users.php?op=show&amp;usersearch=";
+    $First = "Username";
+	$Second = "Location";
+    $sql = "SELECT DISTINCT username, site FROM users WHERE site LIKE '%$search%' ORDER BY site";
+  }
+  elseif($first == "1"){ // they're looking for all hardware assigned to a user or location or all hardware with a particular software title assigned to it, possibly with a date range.
+    if($second == "software") {
+	  $link = "software.php?op=show&amp;title=";
+	}
+	else {
+	  $link = "hardware.php?op=show&amp;search=";
+	}
+    $First = "Hardware Asset";
+	$first = "hardware assets";
+	if($when == 'all'){
+      if($second == "username" || $second == "site"){
+        $sql = "SELECT DISTINCT hardwares.asset, hardware.$second, hardware.codate, hardware.cidate FROM hardwares, hardware ".
+	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%'";
+	  }
+      else {
+	    $First = "Softare Title";
+		$Second = "Asset Number";
+	    $sql = "SELECT DISTINCT software.title, hardwares.asset, software.codate, software.cidate FROM software, hardwares WHERE ".
+	           "software.hid=hardwares.hid AND title LIKE '%$search%'";
+	  }
+    }elseif($when == "dates"){ // They are looking within a date range.
+      if($second == "username" || $second == "site"){
+	    $extrasearchdescription = "and the hardware was checked out from $fromdate to $todate";
+        $sql = "SELECT DISTINCT hardwares.asset, hardware.$second, hardware.codate, hardware.cidate FROM hardwares, hardware ".
+	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
+	  }
+      else {
+	    $First = "Softare Title";
+		$Second = "Asset Number";
+		$extrasearchdescription = "and $second was checked out to the hardware from $fromdate to $todate";
+	    $sql = "SELECT DISTINCT software.title, hardwares.asset, software.codate, software.cidate FROM software, hardwares WHERE ".
+	           "software.hid=hardwares.hid AND title LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
+		
+	  }
+	}elseif($when == "current") { 
+	  if($second == "username" || $second == "site"){
+		$extrasearchdescription = "and the hardware is currently checked out.";
+        $sql = "SELECT DISTINCT hardwares.asset, hardware.$second, hardware.codate, hardware.cidate FROM hardwares, hardware ".
+	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND cidate='0000-00-00 00:00:00'";
+
+	  }
+      else {
+	    $First = "Softare Title";
+		$Second = "Asset Number";
+		$extrasearchdescription = "and $second is currently checked out to the hardware";
+	    $sql = "SELECT DISTINCT software.title, hardwares.asset, software.codate, software.cidate FROM software, hardwares WHERE ".
+	           "software.hid=hardwares.hid AND title LIKE '%$search%' AND cidate='0000-00-00 00:00:00'";
+	  }
+	}
+	else {
+	  require_once('./include/header.php');
+	  $result = "The query you have entered was not formed properly.";
+	  require_once('./include/infopage.php');
+	}
+  }
+  elseif($first == "2"){ // They're trying to search logs
+    $first = "logs";
+	$First = "Logs";
+	$Second = ucfirst($second);
+	if($when == "dates"){
+	  $extrasearchdescription = "and the event occured between $fromdate and $todate";
+	  $sql = "SELECT occuredat, username, ipaddress, level, message FROM logs WHERE $second LIKE '%$search%' AND ".
+	         "occuredat<'$fromdate' AND occuredat>'$todate' ORDER BY lid DESC";
+	}
+	else{
+	  $sql = "SELECT occuredat, username, ipaddress, level, message FROM logs WHERE $second LIKE '%$search%' ORDER BY lid DESC";
+	}
+  }
+  if($second == "username"){
+    $Second = "User";
+  }elseif($second == "site") {
+    $Second = "Location";
+  }
+
+  $row = mysql_query($sql);
+  $totalrows = mysql_num_rows($row);
+ 
+
+  if($totalrows < "1"){
+    require_once('./include/header.php');
+    $result = "No results were found that matched your search.";
+	require_once('./include/infopage.php');
+  }
+  
+  ob_start();
+
+  if($first != "logs" && $first != "users"){
+    echo "<table width=\"100%\"><tr><td><b>$First</b></td><td><b>$Second</b></td><td><b>Checked Out</b></td><td><b>Checked In</b></td></tr>";
+    while(list($linkable,$searched,$from,$to) = mysql_fetch_row($row)){
+      echo "<tr><td><a href=\"$link$linkable\">$linkable</a></td><td>$searched</td><td>$from</td><td>$to</td></tr>";
+    }  
+  }
+  elseif($first == "users"){
+    echo "<table width=\"100%\"><tr><td><b>$First</b></td><td><b>$Second</b></td></tr>";
+    while(list($linkable,$searched) = mysql_fetch_row($row)){
+      echo "<tr><td><a href=\"$link$linkable\">$linkable</a></td><td>$searched</td></tr>";
+    }
+  }
+  elseif($first == "logs"){
+    echo "<table width=\"100%\"><tr><td><b>Timestamp</b></td><td><b>Username</b></td><td><b>IP Address</b></td>".
+         "<td><b>Severity</b></td><td><b>Message</b></td></tr>\n";
+    while(list($occuredat,$username,$ipaddress, $level,$message) = mysql_fetch_row($row)){
+      echo "<tr><td>$occuredat</td><td>$username</td><td>$ipaddress</td><td>$level</td><td>$message</td></tr>";
+    }
+  }
+  echo "</table>";
+
+  $fileout = ob_get_contents();
+  ob_end_clean();
+  $size = strlen(pack("A", $fileout));
+  $size = ceil($size/8);
+  header("Cache-Control: "); //keeps ie happy
+  header("Pragma: "); //keeps ie happy
+  header("Content-type: application/ms-excel"); // content type
+  header("Content-Length: $size");
+  header("Content-Disposition: attachment; filename=\"search.xls\"");
+  echo $fileout;
+}
+
 function search(){
   global $CI;
-  AccessControl('1'); // The access level of this script is 1. Please see the documentation for this function in common.php.
-  require_once('./include/header.php');
+  $accesslevel = "1";
+  $message = "search conducted";
+  AccessControl($accesslevel, $message); 
+  if(isset($_GET['export'])){
+    $export = clean($_GET['export']);
+  }
+  else{
+    $export = "off";
+  }
   
+  if($export == "on"){
+    $uri = $_SERVER['REQUEST_URI'];
+	$uri = str_replace("op=search", "op=download", $uri);
+	header("Location: $uri");
+	exit();
+  }
+    
   $first = clean($_GET['first']);
-
-  if($first == "1") {
-    $first = "hardware";
-  }
-  if($first == "2") {
-    $first = "software";
-  }
   $second = clean($_GET['second']);
   $search = clean($_GET['search']);
   $fromdate = clean($_GET['from_year'])."-".clean($_GET['from_month'])."-".clean($_GET['from_day']);
@@ -47,43 +210,58 @@ function search(){
 	exit();
   }
   elseif($first == "0") { // they're looking for users at a site
-    $first = "Username";
-	$second = "Location";
-    $sql = "SELECT username, site FROM users WHERE site LIKE '%$search%' ORDER BY site";
+    $first = "users";
+	$link = "users.php?op=show&amp;usersearch=";
+    $First = "Username";
+	$Second = "Location";
+    $sql = "SELECT DISTINCT username, site FROM users WHERE site LIKE '%$search%' ORDER BY site";
   }
-  else{ // they're looking for all hardware assigned to a user or location or all hardware with a particular software title assigned to it, possibly with a date range.
-    $first = "Hardware Asset";
+  elseif($first == "1"){ // they're looking for all hardware assigned to a user or location or all hardware with a particular software title assigned to it, possibly with a date range.
+    if($second == "software") {
+	  $link = "software.php?op=show&amp;title=";
+	}
+	else {
+	  $link = "hardware.php?op=show&amp;search=";
+	}
+    $First = "Hardware Asset";
+	$first = "hardware assets";
 	if($when == 'all'){
       if($second == "username" || $second == "site"){
-        $sql = "SELECT hardwares.asset, hardware.$second FROM hardwares, hardware ".
+        $sql = "SELECT DISTINCT hardwares.asset, hardware.$second, hardware.codate, hardware.cidate FROM hardwares, hardware ".
 	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%'";
 	  }
       else {
-	    $first = "Softare Title";
-		$second = "Asset Number";
-	    $sql = "SELECT software.title, hardwares.asset FROM software, hardwares WHERE ".
+	    $First = "Softare Title";
+		$Second = "Asset Number";
+	    $sql = "SELECT DISTINCT software.title, hardwares.asset, software.codate, software.cidate FROM software, hardwares WHERE ".
 	           "software.hid=hardwares.hid AND title LIKE '%$search%'";
 	  }
     }elseif($when == "dates"){ // They are looking within a date range.
       if($second == "username" || $second == "site"){
-        $sql = "SELECT hardwares.asset, hardware.$second FROM hardwares, hardware ".
+	    $extrasearchdescription = "and the hardware was checked out from $fromdate to $todate";
+        $sql = "SELECT DISTINCT hardwares.asset, hardware.$second, hardware.codate, hardware.cidate FROM hardwares, hardware ".
 	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
 	  }
       else {
-	    $first = "Softare Title";
-		$second = "Asset Number";
-	    $sql = "SELECT software.title, hardwares.asset FROM software, hardwares WHERE ".
+	    $First = "Softare Title";
+		$Second = "Asset Number";
+		$extrasearchdescription = "and $second was checked out to the hardware from $fromdate to $todate";
+	    $sql = "SELECT DISTINCT software.title, hardwares.asset, software.codate, software.cidate FROM software, hardwares WHERE ".
 	           "software.hid=hardwares.hid AND title LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
+		
 	  }
 	}elseif($when == "current") { 
 	  if($second == "username" || $second == "site"){
-        $sql = "SELECT hardwares.asset, hardware.$second FROM hardwares, hardware ".
+		$extrasearchdescription = "and the hardware is currently checked out.";
+        $sql = "SELECT DISTINCT hardwares.asset, hardware.$second, hardware.codate, hardware.cidate FROM hardwares, hardware ".
 	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND cidate='0000-00-00 00:00:00'";
+
 	  }
       else {
-	    $first = "Softare Title";
-		$second = "Asset Number";
-	    $sql = "SELECT software.title, hardwares.asset FROM software, hardwares WHERE ".
+	    $First = "Softare Title";
+		$Second = "Asset Number";
+		$extrasearchdescription = "and $second is currently checked out to the hardware";
+	    $sql = "SELECT DISTINCT software.title, hardwares.asset, software.codate, software.cidate FROM software, hardwares WHERE ".
 	           "software.hid=hardwares.hid AND title LIKE '%$search%' AND cidate='0000-00-00 00:00:00'";
 	  }
 	}
@@ -93,38 +271,169 @@ function search(){
 	  exit();
 	}
   }
-  if($second == "username"){
-    $second = "User";
-  }elseif($second == "site") {
-    $second = "Location";
+  elseif($first == "2"){ // They're trying to search logs
+    $first = "logs";
+	$First = "Logs";
+	$Second = ucfirst($second);
+	if($when == "dates"){
+	  $extrasearchdescription = "and the event occured between $fromdate and $todate";
+	  $sql = "SELECT occuredat, username, ipaddress, level, message FROM logs WHERE $second LIKE '%$search%' AND ".
+	         "occuredat<'$fromdate' AND occuredat>'$todate' ORDER BY lid DESC";
+	}
+	else{
+	  $sql = "SELECT occuredat, username, ipaddress, level, message FROM logs WHERE $second LIKE '%$search%' ORDER BY lid DESC";
+	}
   }
+  if($second == "username"){
+    $Second = "User";
+  }elseif($second == "site") {
+    $Second = "Location";
+  }
+  if(!isset($_GET['page'])) { 
+    $page = "1";
+  }
+  else {
+    $page = $_GET['page']; 
+  }
+  $limit = "10";
+  $lowerlimit = $page * $limit - $limit;
+  $totalrows = mysql_num_rows(mysql_query($sql));
+  $sql .= " LIMIT $lowerlimit, $limit";
   $row = mysql_query($sql);
-  $rowcount = mysql_num_rows($row);
+  $rows = mysql_num_rows($row);
+  $numofpages = ceil($totalrows/$limit); 
+  if(!isset($extrasearchdescription)){
+    $extrasearchdescription = "";
+  }
   
-  if($rowcount < "1"){
-    echo "<p>No results were found that matched your search.</p>";
+  echo "<p><b>You searched for:</b><br />All $first where \"$second\" is like \"$search\" $extrasearchdescription</p>".
+       "<hr class=\"head\" />";
+
+  if($totalrows < "1"){
+    echo "<p><b>No results were found that matched your search.</b></p>";
 	require_once('./include/footer.php');
 	exit();
   }
-  echo "<table><tr><th>$first</th><th>$second</th></tr>";
-  while(list($linkable,$searched) = mysql_fetch_row($row)){
-    echo "<tr><td>$linkable</td><td>$searched</td></tr>";
+
+  if($first != "logs" && $first != "users"){
+    echo "<table width=\"100%\"><tr><td><b>$First</b></td><td><b>$Second</b></td><td><b>Checked Out</b></td><td><b>Checked In</b></td></tr>".
+	     "<tr><td colspan=\"4\"><hr class=\"head\" /></td></tr>\n";
+    while(list($linkable,$searched,$from,$to) = mysql_fetch_row($row)){
+      echo "<tr><td><a href=\"$link$linkable\">$linkable</a></td><td>$searched</td><td>$from</td><td>$to</td></tr>".
+	       "<tr><td colspan=\"4\"><hr class=\"division\" /></td></tr>";
+    }
+    echo "</table>";
   }
-  echo "</table>";
-	
-  
-  
+  elseif($first == "users"){
+    echo "<table width=\"100%\"><tr><td><b>$First</b></td><td><b>$Second</b></td></tr>".
+	     "<tr><td colspan=\"2\"><hr class=\"head\" /></td></tr>\n";
+    while(list($linkable,$searched) = mysql_fetch_row($row)){
+      echo "<tr><td><a href=\"$link$linkable\">$linkable</a></td><td>$searched</td></tr>".
+	       "<tr><td colspan=\"4\"><hr class=\"division\" /></td></tr>";
+
+    }
+    echo "</table>";
+  }
+  elseif($first == "logs"){
+    echo "<table width=\"100%\"><tr><td><b>Timestamp</b></td><td><b>Username</b></td><td><b>IP Address</b></td>".
+         "<td><b>Severity</b></td><td><b>Message</b></td></tr>\n".
+	     "<tr><td colspan=\"5\"><hr class=\"head\" /></td></tr>\n";
+		 
+    while(list($occuredat,$username,$ipaddress, $level,$message) = mysql_fetch_row($row)){
+      if($level == "high"){
+	    $level = "<b>$level</b>";
+      }
+	  echo "<tr><td>$occuredat</td><td>$username</td><td>$ipaddress</td><td>$level</td><td>$message</td></tr>".
+	       "<tr><td colspan=\"5\"><hr class=\"division\" /></td></tr>";
+
+    }
+    echo "</table>";
+  }
   
 
   
+  if($numofpages > "1") {
+    if($page != "1") { // Generate Prev link only if previous pages exist.
+      $pageprev = $page - "1";
+       echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$pageprev\"> Prev </a>";
+    }
+    
+	if($numofpages < "10"){
+	  $i = "1";
+      while($i < $page) { // Build all page number links up to the current page
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+	    $i++;
+      }
+	}
+	else {
+	  if($page > "4") {
+	    echo "...";
+	  }
+	  $i = $page - "3";
+	  while($i < $page ) { // Build all page number links up to the current page
+	    if($i > "0"){
+          echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+	    }
+		$i++;
+      }
+	}
+    echo "[$page]"; // List Current page
+	
+	if($numofpages < "10"){	
+      $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
+      while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        $i++;
+      }
+	}
+	else{
+	  $i = $page + "1";
+	  $j = "1";
+	  while(($numofpages-$page > "0") && ($i <= $numofpages) && ($j <= "3")) {
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        $i++;
+		$j++;
+      }
+	  if($i <= $numofpages){
+	    echo "...";
+	  }
+	}
+    if($page < $numofpages) { // Generate Next link if there is a page after this one
+      $nextpage = $page + "1";
+	  echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$nextpage\"> Next </a>";
+	}
+  }
+    
+    // Regardless of how many pages there are, well show how many records there are and what records we're displaying.
+	
+    if($lowerlimit == "0") { // The program is happy to start counting with 0, humans aren't.
+      $lowerlimit = "1";
+    }
+	else{
+	  $lowerlimit++;
+	}
+	$upperlimit = $lowerlimit + $limit - 1;
+	if($upperlimit > $totalrows) {
+	  $upperlimit = $totalrows;
+	}
+	if($rows <= $totalrows){
+	  $howmany = "$lowerlimit - $upperlimit out of";
+	}
+	else{
+	  $howmany = "";
+	}
+    echo "<br />\n<br />\nShowing $howmany $totalrows results.<br />\n";  
+
   require_once('./include/footer.php');
   
 } // Ends search function
 
 function show_form(){
   global $CI;
-  AccessControl('1'); // The access level of this script is 1. Please see the documentation for this function in common.php.
-  require_once('./include/header.php');
+  $accesslevel = "1";
+  $message = "search form accessed";
+  AccessControl($accesslevel, $message); 
+  
   ?>
   <script type="text/javascript" src="javascripts/options.js"></script>
   <script type="text/javascript">
@@ -135,9 +444,10 @@ function show_form(){
   <form action="search.php" method="get">
   <p><b>Search:</b><br />
   <input type="hidden" name="op" value="search" />
-  <select name="first" onchange="populate()">
+  <select name="first" onchange="populate();">
     <option value="0">users</option>
 	<option value="1">hardware</option>
+	<option value="2">logs</option>
   </select>
   matching
   <select name="second">
@@ -145,11 +455,13 @@ function show_form(){
   </select>: <input name="search" type="text" /> &nbsp;
   <br />
   <div id="extraforms" style="display: none;">
+  <div id="extraforms2" style="display: none;">
   <input type="radio" name="when" value="current" onclick="new Effect.Fade('extraextraforms', {duration: 0.2})" checked="checked"> currently assigned<br />
+  </div>  
   <input type="radio" name="when" value="all" onclick="new Effect.Fade('extraextraforms', {duration: 0.2})"> in all records <br />
   <input type="radio" name="when" value="dates" onclick="new Effect.Appear('extraextraforms', {duration: 0.2})"> specify a date range<br />
-  <br />
   <div id="extraextraforms" style="display: none;">
+  <br />
   <b>From:</b><br />
     <select name="from_year">
     <?php
@@ -209,9 +521,12 @@ function show_form(){
 	  }
 	?>
   </select>
-  <br /><br />
+  <br />
   </div>
   </div>
+  <br />
+  <input type="checkbox" name="export" /> Export Results as Excel spreadsheet<br />
+  <br />
   <input type="submit" value=" Go " /></p>
   </form>
   <?php

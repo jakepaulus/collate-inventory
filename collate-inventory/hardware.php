@@ -7,9 +7,14 @@
  * function is identical...such as clean().)
  */
 require_once('./include/common.php');
+require_once('./include/header.php');
 
-
-$op = $_GET['op'];
+if(isset($_GET['op'])){
+  $op = $_GET['op'];
+}
+else {
+  $op = "list_all";
+}
 
 switch($op){
 	
@@ -45,17 +50,17 @@ switch($op){
 
 function convertIntToAlphabet($int_wert) { // Used as part of generating asset numbers
   if($int_wert%27>=1) {
-    $alpha_string=chr(($int_wert%27)+64).$alpha_string;
-    $alpha_string=convertIntToAlphabet($int_wert/27).$alpha_string;
+    $alpha_string=chr(($int_wert%27)+64);
   }
   return $alpha_string;
 }
 
 function add_hardware(){
   global $CI;
-  AccessControl('3');
+  $accesslevel = "3";
+  $message = "add hardware form accessed";
+  AccessControl($accesslevel, $message); 
   
-  require_once('./include/header.php');
   // Display new-software form that posts to software_process.php 
   ?>
   <div id="tip" class="tip" style="display:none;"><i>This number is being generated automatically. You may remove it and type another if you wish as long as it is unique.</i><br /></div>
@@ -80,10 +85,9 @@ if($CI['settings']['autoasset'] == "1") {
   $result = mysql_query($sql);
   $max_hid = mysql_result($result, 0);
   $alpha = convertIntToAlphabet(date('m')); // script.aculo.us's autocomplete doesn't like strings that start with a number.
-  
   $asset = $alpha.$max_hid."Y".date('y');
 ?>
-    <input id="asset" name="asset" type="text" value="<?php echo $asset; ?>" size="30" /><a href="#" onclick="new Effect.toggle($('tip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+    <input id="asset" name="asset" type="text" value="<?php echo $asset; ?>" size="30" /><a href="#" onclick="new Effect.toggle($('tip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
 <?php
 }
 else { ?>
@@ -94,7 +98,7 @@ else { ?>
     <p>Description:<br />
     <textarea id="description" name="description" rows="4" cols="40"></textarea></p>
    <p>Assign Hardware: (optional)<br />
-    <input id="hardwareassignment" name="hardwareassignment" type="text" size="15" /> <a href="#" onclick="new Effect.toggle($('assigntip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+    <input id="hardwareassignment" name="hardwareassignment" type="text" size="15" /> <a href="#" onclick="new Effect.toggle($('assigntip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
     <div id="hardwareassignment_update" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
       // <![CDATA[
@@ -111,11 +115,13 @@ else { ?>
 
 function process_new_hardware() {
   global $CI;
-  AccessControl("3"); 
-  require_once('./include/header.php');
+  $asset = clean($_POST['asset']);
+  $accesslevel = "3";
+  $message = "new hardware added. asset: $asset";
+  AccessControl($accesslevel, $message); 
   
   $category = clean($_POST['category']);
-  $asset = clean($_POST['asset']);
+  
   $serial = clean($_POST['serial']);
   $description = nl2br(clean($_POST['description']));
   $username = clean($_POST['hardwareassignment']);
@@ -181,16 +187,16 @@ function process_new_hardware() {
 
 function retire_hardware(){
   global $CI;
-  AccessControl('3');
-  require_once('./include/header.php');
-  
   $search = clean($_GET['hardwaresearch']);
+  $accesslevel = "3";
+  $message = "hardware retired: $search";
+  AccessControl($accesslevel, $message); 
   
 
   // This part is down outside of the lower if condition so that the $hid variable can be used to match for software assignments
-  $sql = "SELECT hid, category, asset, serial, description FROM hardwares WHERE asset='$search' OR serial='$search'";
+  $sql = "SELECT hid, category, asset, serial, description, username FROM hardwares WHERE asset='$search' OR serial='$search'";
   $row = mysql_query($sql);
-  list($hid,$category,$asset,$serial,$description) = mysql_fetch_row($row);
+  list($hid,$category,$asset,$serial,$description,$username) = mysql_fetch_row($row);
    
   if(mysql_num_rows($row) != "1") {
     $result = "You entered \"$search\" to be retired. There is not exactly one asset in the database that matches this value. \n".
@@ -207,44 +213,70 @@ function retire_hardware(){
 	require_once('./include/infopage.php');
   }
     
-  if($_GET['confirm'] != "yes") { // Show confirmation message or error 
+  if($_GET['confirm'] != "yes" && $username != NULL) { // Show confirmation message or error 
     // This is a valid asset to be retired.
     echo "<h1>Retire Asset: $asset:</h1><br />".
          "<p><b>Description:</b><br />".
          "$description</p>".
          "<p><b>Other Details:</b><br />".
          "Serial Number: $serial</p>".
-         "<b>Are you sure you would like to retire this asset?</b> This action will perminantly retire \n".
-		 "this hardware. The records for this hardware will still be viewable using the search feature. \n".
+         "<b>Are you sure you would like to retire this asset?</b> This action will remove the hardware from \n".
+		 "the list all page. The hardware will also no longer show as assigned to any particular user. The records ".
+		 "for this hardware will still be viewable using the search feature. \n".
 	     "<br /><br /><a href=\"hardware.php?op=retire&amp;hardwaresearch=$search&amp;confirm=yes\">".
-	     "<img src=\"./images/apply.png\" alt=\"confirm\" /></a> &nbsp; <a href=\"hardware.php?op=show&amp;search=$search\">".
-	     "<img src=\"./images/cancel.png\" alt=\"cancel\" /></a>";
+	     "<img src=\"./images/apply.gif\" alt=\"confirm\" /></a> &nbsp; <a href=\"hardware.php?op=show&amp;search=$search\">".
+	     "<img src=\"./images/cancel.gif\" alt=\"cancel\" /></a>";
+      require_once('./include/footer.php');
+      exit();
+  }
+  elseif($_GET['confirm'] != "yes" && $username === NULL){
+    // This is a valid asset to be reinstated
+    echo "<h1>Reinstate Asset: $asset:</h1><br />".
+         "<p><b>Description:</b><br />".
+         "$description</p>".
+         "<p><b>Other Details:</b><br />".
+         "Serial Number: $serial</p>".
+         "<b>Are you sure you would like to reinstate this asset?</b> This action will assign this hardware \n".
+		 "back to the system user to make the hardware available for assignment again.\n".
+	     "<br /><br /><a href=\"hardware.php?op=retire&amp;hardwaresearch=$search&amp;confirm=yes\">".
+	     "<img src=\"./images/apply.gif\" alt=\"confirm\" /></a> &nbsp; <a href=\"hardware.php?op=show&amp;search=$search\">".
+	     "<img src=\"./images/cancel.gif\" alt=\"cancel\" /></a>";
       require_once('./include/footer.php');
       exit();
   }
 
+
   // They've confirmed they would like this hardware retired.
-
-  $sql = "UPDATE hardware SET cidate=NOW() WHERE hid='$hid'";
-  mysql_query($sql);
+  if($username != NULL){
+    $sql = "UPDATE hardware SET cidate=NOW() WHERE hid='$hid'";
+    mysql_query($sql);
  
-  $sql = "UPDATE hardwares SET username=NULL WHERE asset='$search' OR serial='$search'";
-  mysql_query($sql);
-  $result = "The hardware was successfully retired.";
- 
-  
-  require_once('./include/infopage.php');
-
+    $sql = "UPDATE hardwares SET username=NULL WHERE asset='$search' OR serial='$search'";
+    mysql_query($sql);
+    
+	header("Location: hardware.php?op=show&search=$search");
+  }
+  else {
+    $sql = "INSERT INTO hardware (username, hid, codate) VALUES('system', '$hid', NOW())";
+	mysql_query($sql);
+	
+	$sql = "UPDATE hardwares set username='system' WHERE hid='$hid'";
+	mysql_query($sql);
+	
+    header("Location: hardware.php?op=show&search=$search");
+  }
 } // This ends the manage_hardware function
 
 
 function reassign_hardware() {
   global $CI;
-  AccessControl('3');
-  require_once('./include/header.php');
-  
   $username = clean($_GET['username']);
   $search = clean($_GET['hardwaresearch']);
+  $accesslevel = "3";
+  $message = "hardware assigned: $search to: $username";
+  AccessControl($accesslevel, $message); 
+  
+  $returnto = urldecode($_GET['returnto']);
   
   if(strlen($username) < "3") {
     $result = "The username you have entered is not valid. Please try again.";
@@ -255,15 +287,15 @@ function reassign_hardware() {
   $row = mysql_query($sql);
   
   if(mysql_num_rows($row) != "1"){
-    $result = "The asset or serial number you entered did not return exactly one result. Please go back and try \n".
-	          "again. If you feel you have reached this page in error, please contact your administrator.";
-	require_once('./include/infopage.php');
+    $notice = "The asset or serial number you entered did not return exactly one result. Please try try again.";
+	header("Location: $returnto&notice=$notice");
+	exit();
   }
 
   $sql = "UPDATE hardwares SET username='$username' WHERE asset='$search' OR serial='$search'";
   mysql_query($sql);
   if(mysql_affected_rows() != "1"){
-    $result = "There was a problem changing the assigned username for this hardware. If this problem persists, please \n".
+    $notice = "There was a problem changing the assigned username for this hardware. If this problem persists, please \n".
 	          "contact your administrator.";
 	require_once('./include/infopage.php');
   }
@@ -287,23 +319,28 @@ function reassign_hardware() {
 	require_once('./include/infopage.php');
   }
   // Everything should have worked find if we've gotten this far.
-  if(!empty($_GET['search'])){
-    $part2 = "&search=".clean($_GET['search']);
+  $notice = "The hardware was sucessfully reassigned.";
+  if(strlen($returnto) > "3"){
+   header("Location: $returnto&notice=$notice");
   }
-  if(!empty($_GET['username'])){
-    $part2 = "&usersearch=".clean($_GET['username']);
+  else {
+    header("Location: hardware.php");
   }
-  $goto = clean($_GET['returnto']).$part2;
-  header("Location: $goto");
 
 } // Ends reassign_hardware function
 
 function update_hardware(){
   global $CI;
-  AccessControl('3');
-  require_once('./include/header.php');
-  
   $search = clean($_GET['hardwaresearch']);
+  $accesslevel = "3";
+  $message = "hardware updated: $search";
+  AccessControl($accesslevel, $message); 
+  if(isset($_GET['action'])) {
+    $action = $_GET['action'];
+  }
+  else {
+    $action = "show form";
+  }
   
   $sql = "SELECT category, asset, serial, description FROM hardwares WHERE asset='$search'";
   $row = mysql_query($sql);
@@ -314,7 +351,7 @@ function update_hardware(){
 	require_once('./include/infopage.php');
   }
   
-  if($_GET['action'] != "update") {
+  if($action != "update") {
     list($category,$asset,$serial,$description) = mysql_fetch_row($row);
   
     echo "<h1>Update Description for Asset: $asset:</h1> \n".
@@ -335,7 +372,8 @@ function update_hardware(){
   mysql_query($sql);
   
   // If we've gotten this far, everything should have worked fine. 
-  header("Location: hardware.php?op=show&search=$search");
+  $notice = "Description successfully updated";
+  header("Location: hardware.php?op=show&search=$search&notice=$notice");
   
   
 }
@@ -343,11 +381,12 @@ function update_hardware(){
 
 function view_details(){
   global $CI;
-  AccessControl("1"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
- 
-  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  $accesslevel = "1";
+  $message = "hardware details viewed";
+  AccessControl($accesslevel, $message); 
   
   $search = $_GET['search'];
+  $returnto = urlencode($_SERVER['REQUEST_URI']);
   $row = mysql_query("SELECT hid, category, asset, serial, description, username FROM hardwares WHERE asset='$search' OR serial='$search'");
 
   if(mysql_num_rows($row) != "1") {
@@ -364,31 +403,34 @@ function view_details(){
        
 	  
   if($username == NULL) {
-    echo "<b>This hardware is retired</b><br /><br />";
+    echo "<table width=\"100%\"><tr><td align=\"left\">".
+	     "<a href=\"./hardware.php?op=retire&amp;hardwaresearch=$asset\"><img src=\"./images/add.gif\" alt=\"+\" /> Reinstate this hardware</a>".
+         "</td><td align=\"right\">".
+	     "<b>This hardware is retired</b></td></tr></table>";
   }
   else{
     echo "<table width=\"100%\"><tr><td align=\"left\">".
-	     "<a href=\"./hardware.php?op=retire&amp;hardwaresearch=$asset\"><img src=\"./images/remove.png\" alt=\"X\" /> Retire this hardware</a>".
+	     "<a href=\"./hardware.php?op=retire&amp;hardwaresearch=$asset\"><img src=\"./images/remove.gif\" alt=\"X\" /> Retire this hardware</a>".
          "</td><td align=\"right\">".
-	     "<a href=\"hardware.php?op=update&amp;hardwaresearch=$asset\"><img src=\"./images/modify.png\" alt=\"update\" /> ".
+	     "<a href=\"hardware.php?op=update&amp;hardwaresearch=$asset\"><img src=\"./images/modify.gif\" alt=\"update\" /> ".
          "Update Description</a></td></tr></table>";
 	   
   } 
-  echo  "<p><b>Description:</b><br />".
+  echo  "<br /><p><b>Description:</b><br />".
         "$description</p>".
         "<p><b>Other Details:</b><br />".
         "Serial Number: $serial</p>";
 
 
-  if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") && $username != NULL) { ?>
+  if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] >= "3") && $username != NULL) { ?>
   <div style="float: left; width: 45%;">
   <form action="hardware.php" method="get">  
   <p><b>Re-assign Hardware:</b><br />
 	<input name="op" value="reassign" type="hidden" />
 	<input name="hardwaresearch" type="hidden" value="<?php echo $asset; ?>" />
-	<input name="returnto" type="hidden" value="hardware.php?op=show&search=<?php echo $asset; ?>" />
+	<input name="returnto" type="hidden" value="<?php echo $returnto ?>" />
     <input id="username" name="username" type="text" size="15" /> 
-	<a href="#" onclick="new Effect.toggle($('assignhardwaretip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+	<a href="#" onclick="new Effect.toggle($('assignhardwaretip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
     <div id="username_update" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
       // <![CDATA[
@@ -402,10 +444,10 @@ function view_details(){
   <form action="software.php" method="get">
   <p><input type="hidden" id="op" name="op" value="assign" />
   <input type="hidden" name="hardwaresearch" value="<?php echo $asset; ?>" />
-  <input type="hidden" name="returnto" value="hardware.php?op=show&search=<?php echo $asset; ?>" />
+  <input type="hidden" name="returnto" value="<?php echo $returnto; ?>" />
   <b>Assign a Software License:</b><br />
   <input id="softwaresearch" name="softwaresearch" type="text" size="15" />
-  <a href="#" onclick="new Effect.toggle($('assignsoftwaretip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+  <a href="#" onclick="new Effect.toggle($('assignsoftwaretip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
   <div id="softwaresearch_update" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
       // <![CDATA[
@@ -434,7 +476,7 @@ function view_details(){
         echo "<tr><td><a href=\"software.php?op=show&amp;title=$title\">$title</a></td><td>$codate</td>";
         if($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") {
 	      echo "<td><a href=\"./software.php?op=release&amp;title=$title&amp;hardware=$asset\">".
-	           "<img src=\"./images/remove.png\" alt=\"X\" /></a></td>";
+	           "<img src=\"./images/remove.gif\" alt=\"X\" /></a></td>";
 	    }
 	    echo "</tr>";
       }
@@ -460,11 +502,11 @@ function view_details(){
 
 function list_hardware(){
   global $CI;
-  AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
-  
-  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  $accesslevel = "1";
+  $message = "hardware list viewed";
+  AccessControl($accesslevel, $message); 
 
-  if($_GET['sort']) { // Determinte what to the list by.
+  if(isset($_GET['sort'])) { // Determinte what to the list by.
     $sort = $_GET['sort'];
   }
   else {
@@ -490,19 +532,14 @@ function list_hardware(){
   }
   
   $lowerlimit = $page * $limit - $limit;
-  if($_GET['view'] == "all") { // for show all, we really don't want to paginate, but we can still use this function
-    $sql = "SELECT hid, category, asset, serial FROM hardwares WHERE username IS NOT NULL ORDER BY $sort ASC";
-  }
-  else {
-    $sql = "SELECT hid, category, asset, serial, username FROM hardwares WHERE username IS NOT NULL ORDER BY $sort LIMIT $lowerlimit, $limit"; 
-  }
+  $sql = "SELECT hid, category, asset, serial, username FROM hardwares WHERE username IS NOT NULL ORDER BY $sort LIMIT $lowerlimit, $limit"; 
   $row = mysql_query($sql);
   
 
     echo "<h1>All Hardware Assets</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
     echo "<table width=\"100%\">\n". // Here we actually build the HTML table
-           "<tr><td align=\"right\" colspan=\"5\"><a href=\"hardware.php?op=add\"><img src=\"./images/add.png\" alt=\"add\" /> Add Hardware</a></td></tr>".
+           "<tr><td align=\"right\" colspan=\"5\"><a href=\"hardware.php?op=add\"><img src=\"./images/add.gif\" alt=\"add\" /> Add Hardware</a></td></tr>".
 	   "<tr><td>&nbsp;</td></tr>".
 	   "<tr><th align=\"left\"><a href=\"hardware.php?sort=category&amp;page=$page\">Category</a></th>".
 	   "<th align=\"left\"><a href=\"hardware.php?sort=asset&amp;page=$page\">Asset Number</a></th>".
@@ -515,56 +552,86 @@ function list_hardware(){
       echo "<tr><td>$category</td><td><a href=\"hardware.php?op=show&amp;search=$asset\">$asset</a></td>".
 	     "<td><a href=\"hardware.php?op=show&amp;search=$serial\">$serial</a></td><td>$username</td><td>";
       if($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] > "2") { 
-        echo "<a href=\"./hardware.php?op=retire&amp;hardwaresearch=$asset\"><img src=\"./images/remove.png\" alt=\"X\" /></a>";
+        echo "<a href=\"./hardware.php?op=retire&amp;hardwaresearch=$asset\"><img src=\"./images/remove.gif\" alt=\"X\" /></a>";
       }
       echo "</td></tr><tr><td colspan=\"5\"><hr class=\"division\" /></td></tr>\n";
     }
     echo "</table>"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
 
     
-    if(($_GET['show'] != "all") && ($numofpages > "1")) {
-      if($page != "1") { // Generate Prev link only if previous pages exist.
-        $pageprev = $page - "1";
-	echo "<a href=\"hardware.php?sort=$sort&amp;page=$pageprev\"> Prev</a>";
-      }
-      $i = "1";
-      while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"hardware.php?sort=$sort&amp;page=$i\">$i</a>";
-	$i++;
-      }
-      echo "[$page]"; // List Current page
-      $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
-      while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"hardware.php?sort=$sort&amp;page=$i\"> $i </a>";
-        $i++;
-      }
-      if($page < $numofpages) { // Generate Next link if there is a page after this one
-        $nextpage = $page + "1";
-	echo "<a href=\"hardware.php?op=sort=$sort&amp;page=$nextpage\"> Next </a>";
-      }
+   if($numofpages > "1") {
+    if($page != "1") { // Generate Prev link only if previous pages exist.
+      $pageprev = $page - "1";
+       echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$pageprev\"> Prev </a>";
     }
     
+	if($numofpages < "10"){
+	  $i = "1";
+      while($i < $page) { // Build all page number links up to the current page
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+	    $i++;
+      }
+	}
+	else {
+	  if($page > "4") {
+	    echo "...";
+	  }
+	  $i = $page - "3";
+	  while($i < $page ) { // Build all page number links up to the current page
+	    if($i > "0"){
+          echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+	    }
+		$i++;
+      }
+	}
+    echo "[$page]"; // List Current page
+	
+	if($numofpages < "10"){	
+      $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
+      while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        $i++;
+      }
+	}
+	else{
+	  $i = $page + "1";
+	  $j = "1";
+	  while(($numofpages-$page > "0") && ($i <= $numofpages) && ($j <= "3")) {
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        $i++;
+		$j++;
+      }
+	  if($i <= $numofpages){
+	    echo "...";
+	  }
+	}
+    if($page < $numofpages) { // Generate Next link if there is a page after this one
+      $nextpage = $page + "1";
+	  echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$nextpage\"> Next </a>";
+	}
+  }
+    
     // Regardless of how many pages there are, well show how many records there are and what records we're displaying.
-    if($lowerlimit + $limit < $totalrows) {
-      $upperlimit = $lowerlimit + $limit;
-    }
-    else {
-      $upperlimit = $totalrows;
-    }
+	
     if($lowerlimit == "0") { // The program is happy to start counting with 0, humans aren't.
       $lowerlimit = "1";
     }
-    echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
-    if($_GET['show'] != "all" && $numofpages > "1") {
-    echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;view=all\">Show all results on one page</a>";
-    }
+	else{
+	  $lowerlimit++;
+	}
+	$upperlimit = $lowerlimit + $limit - 1;
+	if($upperlimit > $totalrows) {
+	  $upperlimit = $totalrows;
+	}
+	if($result_count <= $totalrows){
+	  $howmany = "$lowerlimit - $upperlimit out of";
+	}
+	else{
+	  $howmany = "";
+	}
+    echo "<br />\n<br />\nShowing $howmany $totalrows results.<br />\n"; 
+	
   require_once('./include/footer.php');
 } // Ends list_hardwares function
-
-
-
-
-
-
 
 ?>

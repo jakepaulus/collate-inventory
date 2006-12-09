@@ -68,6 +68,15 @@ CREATE TABLE `softwares` (
   FULLTEXT KEY `description` (`description`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of software titles' ;
 
+CREATE TABLE `logs` (
+`lid` TINYINT( 11 ) NOT NULL AUTO_INCREMENT ,
+`date` DATETIME NOT NULL ,
+`username` VARCHAR( 30 ) DEFAULT 'system' NOT NULL ,
+`level` TINYINT( 1 ) NOT NULL ,
+`message` VARCHAR( 255 ) NOT NULL ,
+PRIMARY KEY ( `lid` ) ,
+INDEX ( `username` , `message` )
+) TYPE = MYISAM ;
 
 CREATE TABLE `users` (
   `uid` int(10) NOT NULL auto_increment,

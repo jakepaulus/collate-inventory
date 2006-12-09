@@ -3,8 +3,6 @@
 if(empty($CI)){exit();} // Make sure people don't access this page directly.
 ?>
   <h1>Notice:</h1>
-    <?php echo $extraalert; ?>
-  <br />
   <p>
     <?php echo $result; ?>
   </p>	

@@ -10,9 +10,15 @@
  * program. 
  */
 require_once('./include/common.php');
+require_once('./include/header.php');
 
 
-$op = $_GET['op'];
+if(isset($_GET['op'])){
+  $op = $_GET['op'];
+}
+else {
+  $op = "list_all";
+}
 
 switch($op){
 
@@ -51,10 +57,10 @@ switch($op){
 
 function delete_software() {
   global $CI;
-  AccessControl('3');
-  require_once('./include/header.php');
-  
   $title = clean($_GET['title']);
+  $accesslevel = "3";
+  $message = "software deleted: $title";
+  AccessControl($accesslevel, $message); 
   
   // First check to make sure this is a valid title
   $sql = "SELECT inuse FROM softwares WHERE title='$title'";
@@ -77,8 +83,8 @@ function delete_software() {
     echo "<h1>Delete $title?</h1><br />".
          "<p><b>Are you sure you'd like to delete this software title from the database?</b>\n".
 	     "<br /><br /><a href=\"software.php?op=delete&amp;title=$title&amp;confirm=yes\">".
-	     "<img src=\"./images/apply.png\" alt=\"confirm\" /></a> &nbsp; <a href=\"software.php?op=show&amp;title=$title\">".
-	     "<img src=\"./images/cancel.png\" alt=\"cancel\" /></a>";
+	     "<img src=\"./images/apply.gif\" alt=\"confirm\" /></a> &nbsp; <a href=\"software.php?op=show&amp;title=$title\">".
+	     "<img src=\"./images/cancel.gif\" alt=\"cancel\" /></a>";
       require_once('./include/footer.php');
       exit();
   }
@@ -94,12 +100,17 @@ function delete_software() {
 
 function update_software() {
   global $CI;
-  AccessControl('3');
-  require_once('./include/header.php');
-  
   $title = clean($_GET['title']);
-  $action = clean($_GET['action']);
+  $accesslevel = "3";
+  $message = "software updated: $title";
+  AccessControl($accesslevel, $message); 
   
+  if(isset($_GET['action'])){
+    $action = clean($_GET['action']);
+  }
+  else {
+    $action = "show form";
+  }
   $sql = "SELECT description, total FROM softwares WHERE title='$title'";
   $row = mysql_query($sql);
   
@@ -135,16 +146,18 @@ function update_software() {
   mysql_query($sql);
   
   // If we've gotten this far, everything should have worked fine. 
-  header("Location: software.php?op=show&title=$title");
+  $notice = "Update successful";
+  header("Location: software.php?op=show&title=$title&notice=$notice");
   
 } // Ends update_software function
 
 function release_license(){
   global $CI;
-  AccessControl('3');
-  require_once('./include/header.php');
-  
   $title = clean($_GET['title']);
+  $accesslevel = "3";
+  $message = "software license released: $title";
+  AccessControl($accesslevel, $message); 
+  
   $hardware = clean($_GET['hardware']);
   
   // Now we need the hardware id.
@@ -175,22 +188,25 @@ function release_license(){
   }
   
   // Everything should have worked if we get here.
-  header("Location: hardware.php?op=show&search=$hardware");
+  $notice = "One license for $title was successfully released.";
+  header("Location: hardware.php?op=show&search=$hardware&notice=$notice");
 } // Ends release_license function
 
 function assign_software(){
   global $CI;
-  AccessControl('3');
-  require_once('./include/header.php');
-  
   $hardware = clean($_GET['hardwaresearch']);
-  $software = clean($_GET['softwaresearch']);
+  $title = clean($_GET['softwaresearch']);
+  $accesslevel = "3";
+  $message = "software license assigned: $title to: $hardware";
+  AccessControl($accesslevel, $message); 
+    
+  $returnto = urldecode(clean($_GET['returnto']));
   
   // This is separated out like this so the error messages can be specific. I don't anticipate this being a problem as I doubt performance will be a requiremement because
   // this application will likely have a low number of users.
   
   // These could really be a subquery in the insert statement, but we need to do this check to make sure it is a valid title anyway.
-  $sql = "SELECT sid FROM softwares WHERE title='$software'";
+  $sql = "SELECT sid FROM softwares WHERE title='$title'";
   $row = mysql_query($sql);
   if(mysql_num_rows($row) != "1"){
     $result = "No software was found that matched your query. Please try again. If this problem persists, please contact your administrator.";
@@ -204,18 +220,20 @@ function assign_software(){
     $result = "No hardware was found that matched your query. Please try again. If this problem persists, please contact your administrator.";
 	require_once('./include/infopage.php');
   }
-  $hid = mysql_result($row, 0, 0);
+  $hid = mysql_result($row, 0);
   
   // We need to make sure this hardware doesn't already have a license allocated to it.
-  $sql = "SELECT coid FROM software WHERE title='$title' AND cidate='0000-00-00 00:00:00'";
+  $sql = "SELECT coid FROM software WHERE title='$title' AND cidate='0000-00-00 00:00:00' AND hid='$hid'";
   $test = mysql_query($sql);
+
   if(mysql_num_rows($test) >= "1") {
-    $result = "A license for this software is already assigned to the hardware asset you specified.";
-	require_once('./include/infopage.php');
+    $notice = "A license for this software is already assigned to the hardware asset you specified.";
+	header("Location: $returnto&notice=$notice");
+	exit();
   }
   
   // Now we'll insert the new license record.
-  $sql = "INSERT INTO software (title, hid, codate) VALUES('$software', '$hid', NOW())";
+  $sql = "INSERT INTO software (title, hid, codate) VALUES('$title', '$hid', NOW())";
   mysql_query($sql);
   if(mysql_affected_rows() != "1") {
     $result = "An Error has occured that has prevented a license from being issued to this hardware. ".
@@ -228,16 +246,18 @@ function assign_software(){
   mysql_query($sql);
   
   // Everything should have worked if we get here.
-  $goto = clean($_GET['returnto']);
-  header("Location: $goto");
+  $notice = "A license for $title was successfully assigned.";
+  header("Location: $returnto&notice=$notice");
   
 } // Ends assign_software function
 
 
 function add_software(){
   global $CI;
-  AccessControl('3');
-  require_once('./include/header.php');
+  $accesslevel = "3";
+  $message = "new software form accessed";
+  AccessControl($accesslevel, $message); 
+  
 
 ?>
   <h1>Add Software To Your Library:</h1>
@@ -257,19 +277,20 @@ function add_software(){
 
 function process_new_software(){
   global $CI;
-  AccessControl("3"); // The access level required for this function is 3. Please see the documentation for this function in common.php.
   
-  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
- 
-  if (strlen($_POST['title']) < "1" || strlen($_POST['desc']) < "1" || strlen($_POST['total']) < "1" ){ 
-    $result = "All fields except are required. Please go back and ensure all fields are completed."; 
-    require_once('./include/infopage.php'); 
-  } 
-
   $title = clean($_POST['title']);
   $description = clean($_POST['desc']);
   $total = clean($_POST['total']);
   
+  $accesslevel = "3";
+  $message = "software license assigned: $title to: $hardware";
+  AccessControl($accesslevel, $message); 
+  
+  if (strlen($_POST['title']) < "1" || strlen($_POST['desc']) < "1" || strlen($_POST['total']) < "1" ){ 
+    $result = "All fields except are required. Please go back and ensure all fields are completed."; 
+    require_once('./include/infopage.php'); 
+  } 
+   
   // Make sure this is a new title.
   $sql = "SELECT title FROM softwares WHERE title='$title'";
   $test = mysql_query($sql);
@@ -294,11 +315,11 @@ function process_new_software(){
 
 function view_details(){
   global $CI;
-  AccessControl("1"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
- 
-  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
-  
   $title = $_GET['title'];
+  $accesslevel = "1";
+  $message = "software details viewed";
+  AccessControl($accesslevel, $message); 
+  
   $row = mysql_query("SELECT sid, title, description, total, inuse FROM softwares WHERE title='$title'");
   
   if(mysql_num_rows($row) != "1") {
@@ -315,7 +336,7 @@ function view_details(){
   <div id="hardwaretip" style="display: none;" class="tip">You can enter the serial or asset number of a hardware asset to assign a software license to the hardware.</div>
   <h1>Details for <?php echo $title; ?>:</h1>
   <p style="text-align: right;"><a href="software.php?op=update&amp;title=<?php echo $title; ?>">
-  <img src="./images/modify.png" alt="" /> Update</a></p>
+  <img src="./images/modify.gif" alt="" /> Update</a></p>
   <p><b>Description:</b><br />
   <?php echo $description; ?></p>
   <p><b>Total Licenses:</b><br /> <?php echo $total; ?></p>
@@ -327,7 +348,7 @@ function view_details(){
   <input type="hidden" name="returnto" id="returnto" value="software.php?op=show&title=<?php echo $title; ?>" />
   <b>Assign a software license:</b><br />
   <input id="hardwaresearch" name="hardwaresearch" type="text" size="15" /> 
-  <a href="#" onclick="new Effect.toggle($('hardwaretip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+  <a href="#" onclick="new Effect.toggle($('hardwaretip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
   <div id="hardwaresearch_update" class="autocomplete"></div>
   <script type="text/javascript" charset="utf-8">
   // <![CDATA[
@@ -336,6 +357,9 @@ function view_details(){
   </script>
   <p><input type="submit" value=" Go " /></p>
   </form>
+  
+  <p><b>Find all hardware this software is assigned to:</b> <a href="<?php echo "search.php?op=search&first=1&second=software&search=$title&when=current"; ?>">
+  <img src="images/search.gif" alt="search" /></a></p>
 <?php
   require_once('./include/footer.php');
 } // Ends view_details function
@@ -345,11 +369,11 @@ function view_details(){
 
 function list_softwares(){
   global $CI;
-  AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
+  $accesslevel = "1";
+  $message = "software list viewed";
+  AccessControl($accesslevel, $message); 
   
-  include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
-  
-  if(clean($_GET['sort'])) {
+  if(isset($_GET['sort'])) {
     $sort = clean($_GET['sort']);
   }
   else {
@@ -370,13 +394,8 @@ function list_softwares(){
   }
 
   $lowerlimit = $page * $limit - $limit;   
-  if($_GET['view'] == "all"){
-    $sql = "SELECT title, total, inuse FROM softwares ORDER BY $sort ASC";
-  }
-  else {
-    $sql  = "SELECT title, total, inuse FROM softwares ORDER BY $sort LIMIT $lowerlimit, $limit";
-  }
-  
+  $sql  = "SELECT title, total, inuse FROM softwares ORDER BY $sort LIMIT $lowerlimit, $limit";
+
   $row = mysql_query($sql); 
 
   if($totalrows < "1"){
@@ -400,50 +419,89 @@ function list_softwares(){
 	  }
 	  
       echo "<tr><td><a href=\"software.php?op=show&amp;title=$title\">$title</a></td><td>$inuse</td>".
-	       "<td>$total</td><td><a href=\"software.php?op=delete&amp;title=$title\">".
-		   "<img src=\"images/remove.png\" alt=\"X\" /></a></td></tr>\n".
+	       "<td>$total</td><td>";
+	  if($CI['user']['accesslevel'] >= "3"){
+	    echo "<a href=\"software.php?op=delete&amp;title=$title\">".
+		     "<img src=\"images/remove.gif\" alt=\"X\" /></a>";
+	  }
+      echo "</td></tr>\n".
 	       "<tr><td colspan=\"4\"><hr class=\"division\" /></td></tr>";
     }
     echo("</table>");
   
- if(($_GET['show'] != "all") && ($numofpages > "1")) {
-      if($page != "1") { // Generate Prev link only if previous pages exist.
-        $pageprev = $page - "1";
-	echo "<a href=\"software.php?page=$pageprev&amp;sort=$sort\"> Prev </a>";
-      }
-      $i = "1";
-      while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"software.php?page=$i&amp;sort=$sort\"> $i </a>";
-	$i++;
-      }
-      echo "[$page]"; // List Current page
-      $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
-      while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"software.php?page=$i&amp;sort=$sort\"> $i </a>";
-        $i++;
-      }
-      if($page < $numofpages) { // Generate Next link if there is a page after this one
-        $nextpage = $page + "1";
-	echo "<a href=\"software.php?page=$nextpage&amp;sort=$sort\"> Next </a>";
-      }
+      if($numofpages > "1") {
+    if($page != "1") { // Generate Prev link only if previous pages exist.
+      $pageprev = $page - "1";
+       echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$pageprev\"> Prev </a>";
     }
     
+	if($numofpages < "10"){
+	  $i = "1";
+      while($i < $page) { // Build all page number links up to the current page
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+	    $i++;
+      }
+	}
+	else {
+	  if($page > "4") {
+	    echo "...";
+	  }
+	  $i = $page - "3";
+	  while($i < $page ) { // Build all page number links up to the current page
+	    if($i > "0"){
+          echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+	    }
+		$i++;
+      }
+	}
+    echo "[$page]"; // List Current page
+	
+	if($numofpages < "10"){	
+      $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
+      while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        $i++;
+      }
+	}
+	else{
+	  $i = $page + "1";
+	  $j = "1";
+	  while(($numofpages-$page > "0") && ($i <= $numofpages) && ($j <= "3")) {
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        $i++;
+		$j++;
+      }
+	  if($i <= $numofpages){
+	    echo "...";
+	  }
+	}
+    if($page < $numofpages) { // Generate Next link if there is a page after this one
+      $nextpage = $page + "1";
+	  echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$nextpage\"> Next </a>";
+	}
+  }
+    
     // Regardless of how many pages there are, well show how many records there are and what records we're displaying.
-    if($lowerlimit + $limit < $totalrows) {
-      $upperlimit = $lowerlimit + $limit;
-    }
-    else {
-      $upperlimit = $totalrows;
-    }
+	
     if($lowerlimit == "0") { // The program is happy to start counting with 0, humans aren't.
       $lowerlimit = "1";
     }
-    echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
-    if($_GET['show'] != "all" && $numofpages > "1") {
-    echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;view=all\">Show all results on one page</a>";
-    }
-
-  require_once('./include/footer.php');  
+	else{
+	  $lowerlimit++;
+	}
+	$upperlimit = $lowerlimit + $limit - 1;
+	if($upperlimit > $totalrows) {
+	  $upperlimit = $totalrows;
+	}
+	if($result_count <= $totalrows){
+	  $howmany = "$lowerlimit - $upperlimit out of";
+	}
+	else{
+	  $howmany = "";
+	}
+    echo "<br />\n<br />\nShowing $howmany $totalrows results.<br />\n"; 
+	
+  require_once('./include/footer.php');
 } // Ends list_softwares function
 
 ?>

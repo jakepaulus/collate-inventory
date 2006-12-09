@@ -9,6 +9,11 @@ store[1] = new Array(
 	'user', 'username',
 	'location', 'site',
 	'software', 'software');
+	
+store[2] = new Array(
+	'user', 'username',
+	'level', 'level',
+	'message', 'message');
 
 function init()
 {
@@ -32,12 +37,18 @@ function populate()
 	{
 		box2.options[i/2] = new Option(list[i],list[i+1]);
 	}
-	if (number > 0)
+	if (number == 0)
 	{
-		new Effect.Appear('extraforms', {duration: 0.2})
+		new Effect.Fade('extraforms', {duration: 0.2});
 	}
-	else
+	else if (number == 1)
 	{
-		new Effect.Fade('extraforms', {duration: 0.2})
+		new Effect.Appear('extraforms', {duration: 0.2});
+		new Effect.Appear('extraforms2', {duration: 0.2});
+	}
+	else if (number == 2)
+	{
+		new Effect.Fade('extraforms2', {duration: 0.2});
+		new Effect.Appear('extraforms', {duration: 0.2});
 	}
 }

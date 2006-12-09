@@ -6,8 +6,14 @@
  * program. 
  */
 require_once('./include/common.php');
+require_once('./include/header.php');
 
-$op = $_GET['op'];
+if(isset($_GET['op'])){
+  $op = $_GET['op'];
+}
+else {
+  $op = "list_all";
+}
 
 switch($op){
 
@@ -38,12 +44,13 @@ switch($op){
 
 function view_details(){
   global $CI;
-  AccessControl("1"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
-  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  $accesslevel = "1";
+  $message = "user details viewed";
+  AccessControl($accesslevel, $message); 
 
   
   $username = strtolower($_GET['usersearch']);
-  
+  $returnto = urlencode($_SERVER['REQUEST_URI']);
 
   $row = mysql_query("SELECT uid, username, accesslevel, phone, altphone, address, city, state, zip, site, email FROM users WHERE username='$username'");
   if(mysql_num_rows($row) != "1") { // This is not a valid username
@@ -51,9 +58,9 @@ function view_details(){
     require_once('./include/infopage.php');
     exit();
   } 
-
+  
   list($uid,$username,$accesslevel,$phone,$altphone, $address, $city,$state,$zip,$site,$email) = mysql_fetch_row($row);
-    require_once('./include/header.php');
+    
    
     if($username != "system") {
       echo "<div id=\"hardwaretip\" class=\"tip\" style=\"display: none;\">You may specify the asset or serial number ".
@@ -103,7 +110,7 @@ function view_details(){
 	  <p>This user has <?php echo $perms; ?> application permissions.</p>
       <p><b>Site:</b><br /><?php echo $site; ?></p>
       </td><td align="right" valign="top"><a href="#" onclick="Effect.divSwap('edit','container');">
-      <img src="./images/modify.png" alt="modify" /> Update User Information</a></td></tr></table>
+      <img src="./images/modify.gif" alt="modify" /> Update User Information</a></td></tr></table>
       <p><b>Address:</b><br />
       <?php echo $address; ?> <br /> <?php echo "$city, $state $zip"; ?></p>
       <p><b>Telephone Numbers:</b><br />
@@ -113,14 +120,14 @@ function view_details(){
 	 
 	 <?php
       //Display hardware that belongs to the user:
-     if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] == "3") && $username != "system") { ?>
+     if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] >= "3") && $username != "system") { ?>
      <form id="assign_hardware" action="hardware.php" method="get">
      <p><b>Assign Hardware:</b><br />
     
 	<input name="op" value="reassign" type="hidden" />
 	<input name="username" value="<?php echo $username; ?>" type="hidden" />
-	<input name="returnto" type="hidden" value="users.php?op=show&username=<?php echo $username; ?>" />
-    <input id="hardwaresearch" name="hardwaresearch" type="text" size="15" /> <a href="#" onclick="new Effect.toggle($('hardwaretip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+	<input name="returnto" type="hidden" value="<?php echo $returnto; ?>" />
+    <input id="hardwaresearch" name="hardwaresearch" type="text" size="15" /> <a href="#" onclick="new Effect.toggle($('hardwaretip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
     <div id="hardwaresearch_update" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
       // <![CDATA[
@@ -151,7 +158,7 @@ function view_details(){
       echo "<tr><td>$category</td><td><a href=\"hardware.php?op=show&amp;search=$asset\">$asset</a></td>".
              "<td><a href=\"hardware.php?op=show&amp;search=$serial\">$serial</a></td><td>";
       if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] > "2") && $username != "system") { 
-        echo "<a href=\"./hardware.php?op=reassign&amp;hardwaresearch=$asset&amp;username=system\"><img src=\"./images/remove.png\" alt=\"X\" /></a>"; 
+        echo "<a href=\"./hardware.php?op=reassign&amp;hardwaresearch=$asset&amp;username=system&amp;returnto=$returnto\"><img src=\"./images/remove.gif\" alt=\"X\" /></a>"; 
       }
       echo "</td></tr>\n";
     }
@@ -164,7 +171,7 @@ function view_details(){
 	   <div id="passwordtip" style="display: none;" class="tip">Setting a new password will allow this user to login with either their current password (in which case the temporary password would be removed) or the new password (which will prompt the user to reset their password.)</div>
 	   <h1>Update <?php echo $username; ?>:</h1>
        <p style="text-align: right;"><a href="#" onclick="Effect.divSwap('details','container');">
-	   <img src="./images/modify.png" alt="modify" /> Cancel Update</a></p>
+	   <img src="./images/modify.gif" alt="modify" /> Cancel Update</a></p>
 	   
 	   <form id="new_user" action="users.php?op=update&amp;username=<?php echo $username; ?>" method="post">
 
@@ -186,18 +193,18 @@ function view_details(){
 	  if($CI['settings']['ldapauth'] === "0"){ ?>
 		<p>Set a New Temporary Password:<br />
 	    <input id="tmppasswd" name="tmppasswd" type="text" size="30" />
-		<a href="#" onclick="new Effect.toggle($('passwordtip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+		<a href="#" onclick="new Effect.toggle($('passwordtip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
 	    <?php } ?>
 	</div>
     <div style="float: left; width: 45%; padding-left: 5px;">
 	  <p>Please choose the location type:<br />
-      <a href="#" onclick="Effect.divSwap('address_fields','swapable');"><img src="./images/home_small.png" alt="Remote" /></a> &nbsp; 
-      <a href="#" onclick="Effect.divSwap('site','swapable');"><img src="./images/sites_small.png" alt="Site" /></a></p>
+      <a href="#" onclick="Effect.divSwap('address_fields','swapable');"><img src="./images/home_small.gif" alt="Remote" /></a> &nbsp; 
+      <a href="#" onclick="Effect.divSwap('site','swapable');"><img src="./images/sites_small.gif" alt="Site" /></a></p>
       <div id="swapable">
         <div id="site">
           <p>Site:<br />
           <input id="sitesearch" name="sitesearch" type="text" size="15" value="<?php echo $site; ?>" />
-		  <a href="#" onclick="new Effect.toggle($('sitetip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+		  <a href="#" onclick="new Effect.toggle($('sitetip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
           <div id="sitesearch_update" class="autocomplete"></div>
           <script type="text/javascript" charset="utf-8">
             // <![CDATA[
@@ -228,8 +235,10 @@ function view_details(){
 
 function update_user() {
   global $CI;
-  AccessControl("3"); // The Access Level for this function is 1. Please see the documentation in common.php.
-  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+  $username = clean($_GET['username']);
+  $accesslevel = "3";
+  $message = "user details updated for $username";
+  AccessControl($accesslevel, $message); 
   
   if(strlen($_POST['phone']) < "2") {
     $result = "You must include a contact number for the user. Please go back and try again.";
@@ -258,9 +267,8 @@ function update_user() {
       strlen($_POST['state']) > "2" or 
       strlen($_POST['zip']) > "5") || 
       strlen($_POST['sitesearch']) > "2") { 
-
-    $username = clean($_GET['username']);
-    $tmppasswd = clean($_POST['tmppasswd']);
+	  
+    $tmppasswd = sha1(clean($_POST['tmppasswd']));
 	$perms = clean($_POST['perms']);
 	$phone = clean($_POST['phone']);
     $altphone = clean($_POST['altphone']);
@@ -287,7 +295,8 @@ function update_user() {
 	if($CI['user']['accesslevel'] === "5" || $CI['settings']['checklevel5perms'] === "0"){
       if(!empty($tmppasswd)){ 
         $sql = "UPDATE users SET tmppasswd='$tmppasswd', accesslevel='$perms', phone='$phone', altphone='$altphone',".
-               "address='$address', city='$city', state='$state', zip='$zip', site='$site', email='$email' WHERE username='$username'";
+               "address='$address', city='$city', state='$state', zip='$zip', site='$site', email='$email', ".
+			   "loginattempts='0', passwdexpire=NOW() WHERE username='$username'";
 	  }
       else { // We don't want to set a blank tmppasswd if one was already set...the user wont be able to login.
 	    $sql = "UPDATE users SET accesslevel='$perms', phone='$phone', altphone='$altphone',address='$address', city='$city', ".
@@ -299,20 +308,13 @@ function update_user() {
 	         "state='$state', zip='$zip', site='$site', email='$email' WHERE username='$username'";
 	}
     mysql_query($sql);
-	if(mysql_affected_rows() === "1"){
-      $result = "User information has been updated.<br />";
-	}
-	else {
-	  $result = "An error has occured. User information has not been updated.";
-	}
 	
-    // Now we need to update the hardware assigned to the user with new location details if the location has changed.
     $sql = "UPDATE hardware SET site='$site' WHERE username='$username' AND cidate='0000-00-00 00:00:00'";
     mysql_query($sql);
-	if(mysql_affected_rows() >= "1"){
-	  $result .= "Hardware currently assigned to the user has had its location information updated.";
-	}
-	require_once('./include/infopage.php');
+	
+	$notice = "User information successfully updated";
+	header("Location: users.php?op=show&usersearch=$username&notice=$notice");
+	exit();
   }
   else { // No location details were entered
     $result = "You must specify details about the location this user will be at. You can enter the address or provide the name ".
@@ -325,11 +327,13 @@ function update_user() {
 
 function list_users(){
   global $CI;
-  AccessControl("1"); // The Access Level for this function is 1. Please see the documentation in common.php.
+  $accesslevel = "1";
+  $message = "user list viewed";
+  AccessControl($accesslevel, $message); 
   
-  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
+   // This has to be included after AccessControl in case it gets used by the error generator.
   
-  if($_GET['sort']) { // Determinte what to the list by.
+  if(isset($_GET['sort'])) { // Determinte what to the list by.
     $sort = $_GET['sort'];
   }
   else {
@@ -337,7 +341,7 @@ function list_users(){
   }
   
   $limit = "7";
-  $sql = "SELECT COUNT(*) FROM users WHERE uid > '0'"; // Determine the number of pages, > 0 keeps the system account out of the math.
+  $sql = "SELECT COUNT(*) FROM users WHERE uid >= '1'"; // Determine the number of pages, > 0 keeps the system account out of the math.
   $result_count = mysql_query($sql);
   $totalrows = mysql_result($result_count, 0, 0);
   $numofpages = ceil($totalrows/$limit); 
@@ -350,15 +354,10 @@ function list_users(){
   }
   
   $lowerlimit = $page * $limit - $limit;
-  if($lowerlimit < "1") {$lowerlimit = "1";} // This prevents the system account from showing up in the user list.
+  if($lowerlimit < "1") {$lowerlimit = "0";} 
   
-  if($_GET['view'] == "all") { // for print all, we really don't want to paginate, but we can still use this function
-    $sql = "SELECT username, city, state, zip, site, email FROM users WHERE uid>='$lowerlimit' ORDER BY $sort ASC";
-  }
-  else {
-    // this is MUCH faster than using a lower limit because the primary key is indexed.
-    $sql = "SELECT username, city, state, zip, site, email FROM users WHERE uid>='$lowerlimit' ORDER BY $sort LIMIT $limit"; 
-  }
+  $sql = "SELECT username, city, state, zip, site, email FROM users WHERE uid>='1' ORDER BY $sort LIMIT $lowerlimit, $limit"; 
+
   $row = mysql_query($sql);
   
   if($totalrows < "1") {
@@ -366,10 +365,10 @@ function list_users(){
     require_once('./include/infopage.php');
     exit();
   }
-  else { 
-    echo "<h1>All Users</h1>\n";
+
+  echo "<h1>All Users</h1>\n";
     $bgcolor = "#E0E0E0"; // light gray
-    echo "<p style=\"text-align: right;\"><a href=\"users.php?op=add\"><img src=\"./images/add.png\" alt=\"Add\"/> Add a User </a></p>".
+    echo "<p style=\"text-align: right;\"><a href=\"users.php?op=add\"><img src=\"./images/add.gif\" alt=\"Add\"/> Add a User </a></p>".
             "<table width=\"100%\">\n". // Here we actually build the HTML table	   
 	    "<tr><th align=\"left\"><a href=\"users.phpsort=username\">Username</a></th>".
 	   "<th align=\"left\"><a href=\"users.php?sort=city\">Site</a></th>".
@@ -380,7 +379,7 @@ function list_users(){
              "<td colspan=\"2\" align=\"right\"><a href=\"./users.php?op=delete&amp;username=$username\">";
 	     
       if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] > "2") && $username != "system") {
-        echo "<img src=\"./images/remove.png\" alt=\"remove\" /></a>";
+        echo "<img src=\"./images/remove.gif\" alt=\"remove\" /></a>";
       }
       
       echo "</td></tr><tr><td>$city, $state</td><td>$site</td>".
@@ -388,54 +387,94 @@ function list_users(){
     }
     echo "</table><br />"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
     
-    if(($_GET['show'] != "all") && ($numofpages > "1")) {
-      if($page != "1") { // Generate Prev link only if previous pages exist.
-        $pageprev = $page - "1";
-	echo "<a href=\"users.php?page=$pageprev\"> Prev </a>";
-      }
-      $i = "1";
-      while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"users.php?page=$i\">$i</a>";
-	$i++;
-      }
-      echo "[$page]"; // List Current page
-      $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
-      while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"users.php?page=$i\"> $i </a>";
-        $i++;
-      }
-      if($page < $numofpages) { // Generate Next link if there is a page after this one
-        $nextpage = $page + "1";
-	echo "<a href=\"users.php?page=$nextpage\"> Next </a>";
-      }
+  if($numofpages > "1") {
+    if($page != "1") { // Generate Prev link only if previous pages exist.
+      $pageprev = $page - "1";
+       echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$pageprev\"> Prev </a>";
     }
     
+	if($numofpages < "10"){
+	  $i = "1";
+      while($i < $page) { // Build all page number links up to the current page
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+	    $i++;
+      }
+	}
+	else {
+	  if($page > "4") {
+	    echo "...";
+	  }
+	  $i = $page - "3";
+	  while($i < $page ) { // Build all page number links up to the current page
+	    if($i > "0"){
+          echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+	    }
+		$i++;
+      }
+	}
+    echo "[$page]"; // List Current page
+	
+	if($numofpages < "10"){	
+      $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
+      while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        $i++;
+      }
+	}
+	else{
+	  $i = $page + "1";
+	  $j = "1";
+	  while(($numofpages-$page > "0") && ($i <= $numofpages) && ($j <= "3")) {
+        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        $i++;
+		$j++;
+      }
+	  if($i <= $numofpages){
+	    echo "...";
+	  }
+	}
+    if($page < $numofpages) { // Generate Next link if there is a page after this one
+      $nextpage = $page + "1";
+	  echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$nextpage\"> Next </a>";
+	}
+  }
+    
     // Regardless of how many pages there are, well show how many records there are and what records we're displaying.
-	$upperlimit = $totalrows;
 	
     if($lowerlimit == "0") { // The program is happy to start counting with 0, humans aren't.
       $lowerlimit = "1";
     }
-    echo "<br />\n<br />\nShowing $lowerlimit - $upperlimit out of $totalrows<br />\n";
-    if($_GET['show'] != "all" && $numofpages > "1") {
-    echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;view=all\">Show all results on one page</a>";
-    }
-  } 
+	else{
+	  $lowerlimit++;
+	}
+	$upperlimit = $lowerlimit + $limit - 1;
+	if($upperlimit > $totalrows) {
+	  $upperlimit = $totalrows;
+	}
+	if($result_count <= $totalrows){
+	  $howmany = "$lowerlimit - $upperlimit out of";
+	}
+	else{
+	  $howmany = "";
+	}
+    echo "<br />\n<br />\nShowing $howmany $totalrows results.<br />\n"; 
   require_once('./include/footer.php');  
 } // Ends list_users function
 
 
 function delete_user() {
   global $CI;
-  AccessControl('3');
-  require_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.
-  
   $username = clean($_GET['username']);
+  $accesslevel = "5";
+  $message = "user details updated for $username";
+  
   
   if($username == "system") {
     $result = "You cannot delete the system account.";
     require_once('./include/infopage.php');
   }
+  
+  AccessControl($accesslevel, $message); // This is placed here to prevent false messages saying the system account was deleted.
   
   if($_GET['confirm'] != "yes") { // draw the confirmation page or error
   
@@ -454,7 +493,7 @@ function delete_user() {
     while(list($name) = mysql_fetch_row($row)) { // They are requesting deletion of a valid user
       $result = "Are you sure you'd like to delete the user \"$username\"?<br /><br />\n".
 		   "<a href=\"users.php?op=delete&amp;username=$name&amp;confirm=yes\">".
-		   "<img src=\"./images/apply.png\" alt=\"confirm\" /></a> &nbsp; <a href=\"users.php\"><img src=\"./images/cancel.png\" alt=\"cancel\" /></a>";
+		   "<img src=\"./images/apply.gif\" alt=\"confirm\" /></a> &nbsp; <a href=\"users.php\"><img src=\"./images/cancel.gif\" alt=\"cancel\" /></a>";
       require_once('./include/infopage.php');
     }
     $result = "There is no user in the database called \"$username\". Please go back and use the buttons ".
@@ -478,8 +517,10 @@ function delete_user() {
 
 function add_user(){
   global $CI;
-  AccessControl('3'); // This access level of this script is 3. Please see the documentation in common.php.
-  require_once('./include/header.php');
+  $accesslevel = "3";
+  $message = "new user form accessed";
+  AccessControl($accesslevel, $message); 
+  
   ?>
 
  <script type="text/javascript" charset="utf-8">
@@ -523,7 +564,7 @@ function add_user(){
       <input id="email" name="email" type="text" /></p>
       <p>Assign Hardware: (optional)<br />
       <input id="hardwaresearch" name="hardwaresearch" type="text" size="15" /> 
-	  <a href="#" onclick="new Effect.toggle($('hardwaretip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+	  <a href="#" onclick="new Effect.toggle($('hardwaretip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
       <div id="hardwaresearch_update" class="autocomplete"></div>
       <script type="text/javascript" charset="utf-8">
         // <![CDATA[
@@ -559,19 +600,19 @@ function add_user(){
 	    <?php if($CI['settings']['ldapauth'] === "0"){ ?>
 	    <p>Temporary Password:<br />
 	    <input id="tmppasswd" name="tmppasswd" type="text" size="30" />
-		<a href="#" onclick="new Effect.toggle($('passwordtip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+		<a href="#" onclick="new Effect.toggle($('passwordtip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
 	    <?php } ?>
 	  </div>
 	</div>
     <div style="float: left; width: 45%; padding-left: 5px;">
 	  <p>Please choose the location type:<br />
-      <a href="#" onclick="Effect.divSwap('address_fields','swapable');"><img src="./images/home_small.png" alt="Remote" /></a> &nbsp; 
-      <a href="#" onclick="Effect.divSwap('site','swapable');"><img src="./images/sites_small.png" alt="Site" /></a></p>
+      <a href="#" onclick="Effect.divSwap('address_fields','swapable');"><img src="./images/home_small.gif" alt="Remote" /></a> &nbsp; 
+      <a href="#" onclick="Effect.divSwap('site','swapable');"><img src="./images/sites_small.gif" alt="Site" /></a></p>
       <div id="swapable">
         <div id="site">
           <p>Site:<br />
           <input id="sitesearch" name="sitesearch" type="text" size="15" />
-		  <a href="#" onclick="new Effect.toggle($('sitetip'),'appear')"><img src="./images/help.png" alt="[?]" /></a></p>
+		  <a href="#" onclick="new Effect.toggle($('sitetip'),'appear')"><img src="./images/help.gif" alt="[?]" /></a></p>
           <div id="sitesearch_update" class="autocomplete"></div>
           <script type="text/javascript" charset="utf-8">
             // <![CDATA[
@@ -602,13 +643,11 @@ function add_user(){
 
 
 function process_new_user(){
-/*
- * Step 1. Retrieve site information if necessary to add user to db with correct address and site info
- * Step 2. Add user to users table
- * Step 3. Add hardware record if applicable with correct site info from Step 1.
- */
   global $CI;
-  AccessControl("3"); // The access level required for this function is 1. Please see the documentation for this function in common.php.
+  $username = clean($_POST['username']);
+  $accesslevel = "3";
+  $message = "new user added: $username";
+  AccessControl($accesslevel, $message); 
  
   include_once('./include/header.php'); // This has to be included after AccessControl in case it gets used by the error generator.    
   if (strlen($_POST['username']) < "4" ){ 
@@ -645,7 +684,6 @@ function process_new_user(){
       strlen($_POST['zip']) > "5") || 
       strlen($_POST['sitesearch']) > "2") { 
 
-    $username = clean($_POST['username']);
     $phone = clean($_POST['phone']);
     $altphone = clean($_POST['altphone']);
     $address = nl2br(clean($_POST['address']));
@@ -709,7 +747,7 @@ function process_new_user(){
       $result .= "Asset number $asset has been assigned to $username.<br />";
     }
 
-    require_once('./include/header.php');
+    
     require_once('./include/infopage.php');
   }
   else { // No location details were entered
