@@ -1,9 +1,8 @@
 <?php
 /**
- * This script contains functionality that will be used by every single page that is displayed.
- * It builds the CI array, creates the connection to the db that will be used by the rest of the
- * script, populates $CI['settings'] with settings from the db, and runs Access Control for the
- * program. 
+ * Please see /include/common.php for documentation on common.php, the $CI global array used in this application, as well as the AccessControl function used widely.
+ *
+ *
  */
 require_once('./include/common.php');
 require_once('./include/header.php');
@@ -36,6 +35,10 @@ switch($op){
 
 }
 
+/*
+ * This function takes no input. Calling it simply outputs a paginated list of sites.
+ */
+
 function list_sites() {
   global $CI;
   $accesslevel = "1";
@@ -60,7 +63,6 @@ function list_sites() {
   }
   
   $lowerlimit = $page * $limit - $limit;
-  // this is MUCH faster than using a lower limit because the primary key is indexed.
   $sql = "SELECT sid, name, address, city, state, zip FROM sites ORDER BY name LIMIT $lowerlimit, $limit"; 
   
   $result = mysql_query($sql);
@@ -76,21 +78,32 @@ function list_sites() {
   while(list($sid,$name,$address,$city,$state,$zip) = mysql_fetch_row($result)) {
    
     echo "<tr><td><b>$name</b></td><td><a href=\"./sites.php?op=delete&amp;name=$name\">".
-           "<img src=\"./images/remove.gif\" alt=\"remove\" /></a></td></tr><tr><td>$address</td></tr>".
-	   "<tr><td>$city, $state $zip</td></tr><tr><td><hr class=\"division\" /></td></tr>\n";
+         "<img src=\"./images/remove.gif\" alt=\"remove\" /></a></td></tr><tr><td>$address</td></tr>".
+	     "<tr><td>$city, $state $zip</td></tr><tr><td><hr class=\"division\" /></td></tr>\n";
   }
   echo "</table>\n";
    
-    if($numofpages > "1") {
+  $goto = $_SERVER['REQUEST_URI'];
+  if(stristr($_SERVER['REQUEST_URI'], "page")){
+    $goto = preg_replace("{[&]*page=[0-9]*}", '', $goto); // Matches a string containing page=[zero or more numeric characters] and replaces with nothing
+  }
+  if(preg_match("/\?[a-zA-Z]/", $goto)){  // At this point there could be a ? mark, but it might not be followed by anything...in which case we don't want to append an &. 
+    $goto = $goto."&amp;";
+  }
+  elseif(!stristr($goto, "?")){
+    $goto = $goto."?";
+  }  
+    
+  if($numofpages > "1") {
     if($page != "1") { // Generate Prev link only if previous pages exist.
       $pageprev = $page - "1";
-       echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$pageprev\"> Prev </a>";
+       echo "<a href=\"{$goto}page=$pageprev\"> Prev </a>";
     }
     
 	if($numofpages < "10"){
 	  $i = "1";
       while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
 	    $i++;
       }
 	}
@@ -101,7 +114,7 @@ function list_sites() {
 	  $i = $page - "3";
 	  while($i < $page ) { // Build all page number links up to the current page
 	    if($i > "0"){
-          echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+          echo "<a href=\"{$goto}page=$i\"> $i </a>";
 	    }
 		$i++;
       }
@@ -111,7 +124,7 @@ function list_sites() {
 	if($numofpages < "10"){	
       $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
       while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
         $i++;
       }
 	}
@@ -119,7 +132,7 @@ function list_sites() {
 	  $i = $page + "1";
 	  $j = "1";
 	  while(($numofpages-$page > "0") && ($i <= $numofpages) && ($j <= "3")) {
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
         $i++;
 		$j++;
       }
@@ -129,7 +142,7 @@ function list_sites() {
 	}
     if($page < $numofpages) { // Generate Next link if there is a page after this one
       $nextpage = $page + "1";
-	  echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$nextpage\"> Next </a>";
+	  echo "<a href=\"{$goto}page=$nextpage\"> Next </a>";
 	}
   }
     
@@ -151,11 +164,16 @@ function list_sites() {
 	else{
 	  $howmany = "";
 	}
-    echo "<br />\n<br />\nShowing $howmany $totalrows results.<br />\n";  
+    echo "<br />\n<br />\nShowing $howmany $totalrows results.<br />\n"; 
+  require_once('./include/footer.php');
 
 require_once('./include/footer.php');
 } // Ends list_sites function
 
+
+/*
+ * This is a simple form for a new site. It submits to the proccess_new_site function in this same script.
+ */
 
 function add_site(){
   global $CI;
@@ -184,14 +202,22 @@ function add_site(){
   require_once('./include/footer.php');
 }// Ends add_site function
 
-function  process_new_site() {
+
+/*
+ * This function accepts input from the add_site() function above which displays at /sites.php?op=add.
+ * Duplicate site names are not allowed and all inputs are required for the form to process.
+ */
+
+function process_new_site() {
   global $CI;
   $name = clean($_POST['name']);
   $accesslevel = "3";
   $message = "new site added: $name";
   AccessControl($accesslevel, $message); 
   
-  if (strlen($_POST['name']) < "1" || strlen($_POST['address']) < "1" || strlen($_POST['city']) < "1" || strlen($_POST['state']) < "1" || strlen($_POST['zip']) < "1" ){ 
+  if (strlen($_POST['name']) < "1" || strlen($_POST['address']) < "1" || strlen($_POST['city']) < "1" || 
+      strlen($_POST['state']) < "1" || strlen($_POST['zip']) < "1" ){ 
+	  
     $result = "All fields except are required. Please go back and ensure all fields are completed."; 
     require_once('./include/infopage.php'); 
   } 
@@ -202,7 +228,6 @@ function  process_new_site() {
   $state = clean($_POST['state']);
   $zip = clean($_POST['zip']);
   
-
   $sql = "INSERT INTO sites (sid, name, address, city, state, zip) VALUES(NULL, '$name', '$address', '$city', '$state', '$zip')";
 
   $result = mysql_query($sql);
@@ -215,11 +240,14 @@ function  process_new_site() {
   }
     require_once('./include/infopage.php');
   }
-
-
+  
   require_once('./include/footer.php');
 } // Ends process_new_site function
 
+/*
+ * This function is called by direct link with inputs passed via $_GET variables in the URL.
+ * A site will not be deleted if users or hardware are located there. A user is required to confirm before a site is deleted.
+ */
 
 function delete_site() {
   global $CI;
@@ -232,33 +260,28 @@ function delete_site() {
   if($_GET['confirm'] != "yes") { // draw the confirmation page
   
     // First we check to see if there are any users or hardware still at this site. If there are, we wont let the user delete the site.
-    $sql = "SELECT * FROM users WHERE site='$name'";
+    $sql = "SELECT uid FROM users WHERE site='$name'";
     $test = mysql_query($sql);
     if(mysql_num_rows($test) != "0") { // There are users at this site.
-      $result = "There are users are users assigned to the site called \"$name\". This site cannot be deleted until these users are re-assigned to a different site. \n".
-                   "This can be done in the Manage Users section of the Control Panel."; // This should also include a link to the search results for a list of all of the users at this site.
+      $result = "There are users are users assigned to the site called \"$name\". This site cannot be deleted ".
+	            "until these users are re-assigned to a different site. This can be done in the Manage Users ".
+				"section of the Control Panel.";
       require_once('./include/infopage.php');
     }
     
-    $sql = "SELECT * FROM hardware WHERE site='$name' AND cidate='0000-00-00 00:00:00'";
-    $test = mysql_query($sql);
-    if(mysql_num_rows($test) != "0") { // There is hardware at this site.
-      $result = "There is hardware currently located at the site called \"$name\". This site cannot be deleted until this is corrected. You can use the Advanced Search \n".
-                   "Page to find all hardware at this site and reassign it."; // I would like to replace this with a link to the search results for this.
-      require_once('./include/infopage.php');
-    }
-        
     // There aren't any users or hardware at the site, we'll just make sure the user is sure they want to delete the site.
+	// Hardware is relocated when a user is, so hardware can't be anywhere without a user being there.
     $sql = "SELECT name, address, city, state, zip FROM sites WHERE name='$name'";
     $row = mysql_query($sql);
     while(list($name,$address,$city,$state,$zip) = mysql_fetch_row($row)) { // They are requesting deletion of a valid site
       $result = "Are you sure you'd like to delete the following site?<br />\n".
-                   "<table><tr><td><b>$name</b></td></tr><tr><td>$address</td></tr><tr><td>$city, $state $zip</td></tr></table><br />".
-		   "<a href=\"sites.php?op=delete&amp;name=$name&amp;confirm=yes\"><img src=\"./images/apply.gif\" alt=\"confirm\" /></a> &nbsp; <a href=\"sites.php\"><img src=\"./images/cancel.gif\" alt=\"cancel\" /></a>";
+                "<table><tr><td><b>$name</b></td></tr><tr><td>$address</td></tr><tr><td>$city, $state $zip</td></tr></table><br />".
+		        "<a href=\"sites.php?op=delete&amp;name=$name&amp;confirm=yes\"><img src=\"./images/apply.gif\" alt=\"confirm\" /></a>".
+				"&nbsp; <a href=\"sites.php\"><img src=\"./images/cancel.gif\" alt=\"cancel\" /></a>";
       require_once('./include/infopage.php');
     }
     $result = "The site you're attempting to delete is not a valid site in the database. Please go back and use the buttons ".
-                 "provided to delete a site. If you believe you have reached this page in error, please notify ". $CI['adminname'];
+              "provided to delete a site. If you believe you have reached this page in error, please notify ". $CI['adminname'];
     require_once('./include/infopage.php');
   }
   else { // delete the row, they are sure

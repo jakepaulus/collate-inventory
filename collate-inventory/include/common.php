@@ -1,7 +1,7 @@
 <?php
 session_start();
 date_default_timezone_set ('UTC');
-error_reporting('8191');
+
 
 //------------- Build CI array var and put version number in it -----------------------------
 
@@ -10,6 +10,7 @@ $CI['version'] = "alpha";
 
 if(isset($_SESSION['accesslevel'])){
   $CI['user']['accesslevel'] = $_SESSION['accesslevel'];
+  $CI['user']['username'] = $_SESSION['username'];
 }
 else{
   $CI['user']['accesslevel'] = "0";
@@ -34,14 +35,14 @@ while ($column = mysql_fetch_assoc($result)) {
 // --------------- Prevent Unwanted Access ---------------------------------------------------
 
 /**
- * The goal of this section is to set $_SESSION['accesslevel'] with the appropriate 
- * value based on settings and user access. Each function will have a hard-coded value 
+ * The goal of this section is to compare $_SESSION['accesslevel'] with the $accesslevel
+ * parameter and allow or deny access. Each function has a hard-coded value 
  * to check for to allow the function to run. When AccessControl has determined the
  * user has enough access for the function, it will stop further checks.
  * 
- * Access Level 0 = Access denied completely: User can see index.php and login.php
+ * Access Level 0 = Access denied completely: User can see index.php and login.php (this is the default for a new user)
  * Access Level 1 = Read-Only access, no changes can be made
- * Access Level 3 = Changes to inventory can be made, but no changes to settings are allowed
+ * Access Level 3 = Changes to inventory can be made, but no changes to settings or other user's passwords, access levels  are allowed
  * Access Level 5 = Full control of the application including setting changes, user's access level modifications, and user password resets.
  */
 
@@ -66,11 +67,11 @@ while ($column = mysql_fetch_assoc($result)) {
     $notice = "The administrator of this application requires you to login to use this feature.";
     header("Location: login.php?notice=$notice&returnto=$returnto");
     exit(); // If we're requiring a login, we don't want any further script processing at all. 
-  
+  }
   
   // If we've gottent his far, it means the user is already logged in. We'll check their access level and allow or deny access.
   // If access is allowed, but a permission check was required, we'll log what the user was doing.
-  }elseif($_SESSION['accesslevel'] >= $accesslevel){
+  elseif($_SESSION['accesslevel'] >= $accesslevel){
     if($accesslevel > "1"){
       ci_log($accesslevel, $message);
 	}

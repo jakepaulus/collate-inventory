@@ -1,9 +1,6 @@
 <?php
 /**
- * This script contains functionality that will be used by every single page that is displayed.
- * It builds the CI array, creates the connection to the db that will be used by the rest of the
- * script, populates $CI['settings'] with settings from the db, and runs Access Control for the
- * program. 
+ * Please see /include/common.php for documentation on common.php, the $CI global array used by this program, and the AccessControl function used widely.
  */
 require_once('./include/common.php');
 require_once('./include/header.php');
@@ -42,6 +39,13 @@ switch($op){
 	break;
 }
 
+/*
+ * This function takes the username from $_GET['usersearch'] as its only input. Output consists of the details of the user as well as the 
+ * update user form in a hidden div accessed by a link if the user has permission according to $CI['user']['accesslevel'].  An assign hardware
+ * form is also displayed if the user has permission. The update user form submits to the update_user() function in this same script.
+ * This hidden div as well as the autocompletion for the assign hardware form is provided by the scriptaculous javascript library and _hardware.php.
+ */
+
 function view_details(){
   global $CI;
   $accesslevel = "1";
@@ -50,9 +54,11 @@ function view_details(){
 
   
   $username = strtolower($_GET['usersearch']);
-  $returnto = urlencode($_SERVER['REQUEST_URI']);
-
-  $row = mysql_query("SELECT uid, username, accesslevel, phone, altphone, address, city, state, zip, site, email FROM users WHERE username='$username'");
+  $returnto = urlencode($_SERVER['REQUEST_URI']); // This will be passed as a $_GET variable to allow the user to be returned after form processing.
+  
+  $sql = "SELECT uid, username, accesslevel, phone, altphone, address, city, state, zip, site, email FROM users WHERE username='$username'";
+  
+  $row = mysql_query($sql);
   if(mysql_num_rows($row) != "1") { // This is not a valid username
     $result = "Please enter a valid username.";
     require_once('./include/infopage.php');
@@ -158,7 +164,8 @@ function view_details(){
       echo "<tr><td>$category</td><td><a href=\"hardware.php?op=show&amp;search=$asset\">$asset</a></td>".
              "<td><a href=\"hardware.php?op=show&amp;search=$serial\">$serial</a></td><td>";
       if(($CI['settings']['checklevel3perms'] == "0" || $CI['user']['accesslevel'] > "2") && $username != "system") { 
-        echo "<a href=\"./hardware.php?op=reassign&amp;hardwaresearch=$asset&amp;username=system&amp;returnto=$returnto\"><img src=\"./images/remove.gif\" alt=\"X\" /></a>"; 
+        echo "<a href=\"./hardware.php?op=reassign&amp;hardwaresearch=$asset&amp;username=system&amp;returnto=$returnto\">".
+		     "<img src=\"./images/remove.gif\" alt=\"X\" /></a>"; 
       }
       echo "</td></tr>\n";
     }
@@ -168,14 +175,15 @@ function view_details(){
   ?>
   </div>
 	 <div style="display: none;" id="edit">
-	   <div id="passwordtip" style="display: none;" class="tip">Setting a new password will allow this user to login with either their current password (in which case the temporary password would be removed) or the new password (which will prompt the user to reset their password.)</div>
+	   <div id="passwordtip" style="display: none;" class="tip">Setting a new password will allow this user to login with 
+	   either their current password or the new password. In either case, the user will be required to change their password.</div>
 	   <h1>Update <?php echo $username; ?>:</h1>
        <p style="text-align: right;"><a href="#" onclick="Effect.divSwap('details','container');">
 	   <img src="./images/modify.gif" alt="modify" /> Cancel Update</a></p>
 	   
 	   <form id="new_user" action="users.php?op=update&amp;username=<?php echo $username; ?>" method="post">
 
- <div style="float: left; width: 45%; border-right: 1px solid #000;">
+    <div style="float: left; width: 45%; border-right: 1px solid #000;">
       <p>Telephone Number:<br />
       <input id="phone" name="phone" type="text" value="<?php echo $phone; ?>" /></p>
       <p>Alt. Telephone Number: (optional)<br />
@@ -232,6 +240,13 @@ function view_details(){
   require_once('./include/footer.php');
 } // Ends view_details function
 
+/*
+ * This function takes POSTed input from the view_details() function shown at /users.php?op=show&amp;usersearch=[username].
+ * A successful update returns the user to the show page with a success notice above the <h1> tag using the header() function.
+ * The access level required to process the update user form is "3" (read+write access) but a user must have level 5 access (admin)
+ * to update details such as access level of the user being updated or setting a temporary password. This dual-use makes logging
+ * possibly inaccurate as changing the access level or password of a user would really be a severity level of "high" and not "normal."
+ */
 
 function update_user() {
   global $CI;
@@ -386,17 +401,28 @@ function list_users(){
 	     "<td><a href=\"mailto:$email\">$email</a></td></tr><tr><td colspan=\"3\"><hr class=\"division\" /></td></tr>\n";
     }
     echo "</table><br />"; // Here the HTML table ends. Below we're just building the Prev [page numbers] Next links.
+	
+  $goto = $_SERVER['REQUEST_URI'];
+  if(stristr($_SERVER['REQUEST_URI'], "page")){
+    $goto = preg_replace("{[&]*page=[0-9]*}", '', $goto); // Matches a string containing page=[zero or more numeric characters] and replaces with nothing
+  }
+  if(preg_match("/\?[a-zA-Z]/", $goto)){  // At this point there could be a ? mark, but it might not be followed by anything...in which case we don't want to append an &.
+    $goto = $goto."&amp;";
+  }
+  elseif(!stristr($goto, "?")){
+    $goto = $goto."?";
+  }  
     
   if($numofpages > "1") {
     if($page != "1") { // Generate Prev link only if previous pages exist.
       $pageprev = $page - "1";
-       echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$pageprev\"> Prev </a>";
+       echo "<a href=\"{$goto}page=$pageprev\"> Prev </a>";
     }
     
 	if($numofpages < "10"){
 	  $i = "1";
       while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
 	    $i++;
       }
 	}
@@ -407,7 +433,7 @@ function list_users(){
 	  $i = $page - "3";
 	  while($i < $page ) { // Build all page number links up to the current page
 	    if($i > "0"){
-          echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+          echo "<a href=\"{$goto}page=$i\"> $i </a>";
 	    }
 		$i++;
       }
@@ -417,7 +443,7 @@ function list_users(){
 	if($numofpages < "10"){	
       $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
       while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
         $i++;
       }
 	}
@@ -425,7 +451,7 @@ function list_users(){
 	  $i = $page + "1";
 	  $j = "1";
 	  while(($numofpages-$page > "0") && ($i <= $numofpages) && ($j <= "3")) {
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
         $i++;
 		$j++;
       }
@@ -435,7 +461,7 @@ function list_users(){
 	}
     if($page < $numofpages) { // Generate Next link if there is a page after this one
       $nextpage = $page + "1";
-	  echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$nextpage\"> Next </a>";
+	  echo "<a href=\"{$goto}page=$nextpage\"> Next </a>";
 	}
   }
     
@@ -466,7 +492,7 @@ function delete_user() {
   global $CI;
   $username = clean($_GET['username']);
   $accesslevel = "5";
-  $message = "user details updated for $username";
+  $message = "user details updated: $username";
   
   
   if($username == "system") {
@@ -575,10 +601,10 @@ function add_user(){
 	  <p>User's Permissions:<br />
 	  
 	  <?php
-	    $show = "onclick=\"new Effect.BlindDown('extraforms', {duration: 0.2})\"";
-		$show1 = "onclick=\"new Effect.BlindUp('extraforms', {duration: 0.2})\"";
-		$show3 = "onclick=\"new Effect.BlindUp('extraforms', {duration: 0.2})\"";
-		$show5 = "onclick=\"new Effect.BlindUp('extraforms', {duration: 0.2})\"";
+	    $show = "onclick=\"new Effect.Appear('extraforms', {duration: 0.2})\"";
+		$show1 = "onclick=\"new Effect.Fade('extraforms', {duration: 0.2})\"";
+		$show3 = "onclick=\"new Effect.Fade('extraforms', {duration: 0.2})\"";
+		$show5 = "onclick=\"new Effect.Fade('extraforms', {duration: 0.2})\"";
 		
 		if($CI['settings']['checklevel1perms'] === "1"){
 		  $show1 = $show;
@@ -590,7 +616,7 @@ function add_user(){
 		  $show5 = $show;
 		}
 	  ?>
-	    <input type="radio" name="perms" onclick="new Effect.BlindUp('extraforms', {duration: 0.2})" value="0" checked="checked" /> None<br />
+	    <input type="radio" name="perms" onclick="new Effect.Fade('extraforms', {duration: 0.2})" value="0" checked="checked" /> None<br />
         <input type="radio" name="perms" <?php echo $show1; ?> value="1" />Read-Only<br />
         <input type="radio" name="perms" <?php echo $show3; ?> value="3" />Read+Write<br />
 	    <input type="radio" name="perms" <?php echo $show5; ?> value="5" />Admin<br />

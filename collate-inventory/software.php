@@ -429,16 +429,27 @@ function list_softwares(){
     }
     echo("</table>");
   
-      if($numofpages > "1") {
+  $goto = $_SERVER['REQUEST_URI'];
+  if(stristr($_SERVER['REQUEST_URI'], "page")){
+    $goto = preg_replace("{[&]*page=[0-9]*}", '', $goto); // Matches a string containing page=[zero or more numeric characters] and replaces with nothing
+  }
+  if(preg_match("/\?[a-zA-Z]/", $goto)){  // At this point there could be a ? mark, but it might not be followed by anything...in which case we don't want to append an &.
+    $goto = $goto."&amp;";
+  }
+  elseif(!stristr($goto, "?")){
+    $goto = $goto."?";
+  }  
+    
+  if($numofpages > "1") {
     if($page != "1") { // Generate Prev link only if previous pages exist.
       $pageprev = $page - "1";
-       echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$pageprev\"> Prev </a>";
+       echo "<a href=\"{$goto}page=$pageprev\"> Prev </a>";
     }
     
 	if($numofpages < "10"){
 	  $i = "1";
       while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
 	    $i++;
       }
 	}
@@ -449,7 +460,7 @@ function list_softwares(){
 	  $i = $page - "3";
 	  while($i < $page ) { // Build all page number links up to the current page
 	    if($i > "0"){
-          echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+          echo "<a href=\"{$goto}page=$i\"> $i </a>";
 	    }
 		$i++;
       }
@@ -459,7 +470,7 @@ function list_softwares(){
 	if($numofpages < "10"){	
       $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
       while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
         $i++;
       }
 	}
@@ -467,7 +478,7 @@ function list_softwares(){
 	  $i = $page + "1";
 	  $j = "1";
 	  while(($numofpages-$page > "0") && ($i <= $numofpages) && ($j <= "3")) {
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
         $i++;
 		$j++;
       }
@@ -477,7 +488,7 @@ function list_softwares(){
 	}
     if($page < $numofpages) { // Generate Next link if there is a page after this one
       $nextpage = $page + "1";
-	  echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$nextpage\"> Next </a>";
+	  echo "<a href=\"{$goto}page=$nextpage\"> Next </a>";
 	}
   }
     
@@ -500,6 +511,7 @@ function list_softwares(){
 	  $howmany = "";
 	}
     echo "<br />\n<br />\nShowing $howmany $totalrows results.<br />\n"; 
+  require_once('./include/footer.php');
 	
   require_once('./include/footer.php');
 } // Ends list_softwares function

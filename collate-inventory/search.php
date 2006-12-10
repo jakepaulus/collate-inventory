@@ -1,9 +1,8 @@
 <?php
-/**
- * This script contains functionality that will be used by every single page that is displayed.
- * It builds the CI array, creates the connection to the db that will be used by the rest of the
- * script, populates $CI['settings'] with settings from the db, and runs Access Control for the
- * program. 
+/*
+ * This script contains functions that enable search and search result export to excel
+ *
+ * Please see /include/common.php for documentation on common.php and the $CI global array used by this application as well as the AccessControl function used widely.
  */
 require_once('./include/common.php');
 
@@ -30,6 +29,13 @@ switch($op){
   show_form();
   break;
 }
+
+/*
+ * The download function takes the same GET inputs as the search function but outputs to an excel file that the user can download.
+ * Excel can interpret html, so we're just outputting everything the search function does from <table> to </table> and then forcing
+ * a save dialog using the header() function. The download function has to be a separate page because we've already produced output 
+ * to the browser in the search function that we don't want in the spreadsheet by the time we get to the actual search results.
+ */
 
 function download(){
   require_once('./include/common.php');
@@ -58,12 +64,6 @@ function download(){
     $sql = "SELECT DISTINCT username, site FROM users WHERE site LIKE '%$search%' ORDER BY site";
   }
   elseif($first == "1"){ // they're looking for all hardware assigned to a user or location or all hardware with a particular software title assigned to it, possibly with a date range.
-    if($second == "software") {
-	  $link = "software.php?op=show&amp;title=";
-	}
-	else {
-	  $link = "hardware.php?op=show&amp;search=";
-	}
     $First = "Hardware Asset";
 	$first = "hardware assets";
 	if($when == 'all'){
@@ -81,14 +81,14 @@ function download(){
       if($second == "username" || $second == "site"){
 	    $extrasearchdescription = "and the hardware was checked out from $fromdate to $todate";
         $sql = "SELECT DISTINCT hardwares.asset, hardware.$second, hardware.codate, hardware.cidate FROM hardwares, hardware ".
-	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
+	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND codate>='$fromdate 00:00:00' AND cidate<='$todate 23:59:59'";
 	  }
       else {
 	    $First = "Softare Title";
 		$Second = "Asset Number";
 		$extrasearchdescription = "and $second was checked out to the hardware from $fromdate to $todate";
 	    $sql = "SELECT DISTINCT software.title, hardwares.asset, software.codate, software.cidate FROM software, hardwares WHERE ".
-	           "software.hid=hardwares.hid AND title LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
+	           "software.hid=hardwares.hid AND title LIKE '%$search%' AND codate>='$fromdate 00:00:00' AND cidate<='$todate 23:59:59'";
 		
 	  }
 	}elseif($when == "current") { 
@@ -119,7 +119,7 @@ function download(){
 	if($when == "dates"){
 	  $extrasearchdescription = "and the event occured between $fromdate and $todate";
 	  $sql = "SELECT occuredat, username, ipaddress, level, message FROM logs WHERE $second LIKE '%$search%' AND ".
-	         "occuredat<'$fromdate' AND occuredat>'$todate' ORDER BY lid DESC";
+	         "occuredat<'$fromdate 00:00:00' AND occuredat>'$todate 23:59:59' ORDER BY lid DESC";
 	}
 	else{
 	  $sql = "SELECT occuredat, username, ipaddress, level, message FROM logs WHERE $second LIKE '%$search%' ORDER BY lid DESC";
@@ -146,13 +146,13 @@ function download(){
   if($first != "logs" && $first != "users"){
     echo "<table width=\"100%\"><tr><td><b>$First</b></td><td><b>$Second</b></td><td><b>Checked Out</b></td><td><b>Checked In</b></td></tr>";
     while(list($linkable,$searched,$from,$to) = mysql_fetch_row($row)){
-      echo "<tr><td><a href=\"$link$linkable\">$linkable</a></td><td>$searched</td><td>$from</td><td>$to</td></tr>";
+      echo "<tr><td>$linkable</td><td>$searched</td><td>$from</td><td>$to</td></tr>";
     }  
   }
   elseif($first == "users"){
     echo "<table width=\"100%\"><tr><td><b>$First</b></td><td><b>$Second</b></td></tr>";
     while(list($linkable,$searched) = mysql_fetch_row($row)){
-      echo "<tr><td><a href=\"$link$linkable\">$linkable</a></td><td>$searched</td></tr>";
+      echo "<tr><td>$linkable</td><td>$searched</td></tr>";
     }
   }
   elseif($first == "logs"){
@@ -188,7 +188,7 @@ function search(){
     $export = "off";
   }
   
-  if($export == "on"){
+  if($export == "on"){ // The download function has to be a separate page because we've already produced output to the browser in this function that we don't want in the spreadsheet.
     $uri = $_SERVER['REQUEST_URI'];
 	$uri = str_replace("op=search", "op=download", $uri);
 	header("Location: $uri");
@@ -240,14 +240,14 @@ function search(){
       if($second == "username" || $second == "site"){
 	    $extrasearchdescription = "and the hardware was checked out from $fromdate to $todate";
         $sql = "SELECT DISTINCT hardwares.asset, hardware.$second, hardware.codate, hardware.cidate FROM hardwares, hardware ".
-	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
+	           "WHERE hardwares.hid=hardware.hid AND hardware.$second LIKE '%$search%' AND codate>='$fromdate 00:00:00' AND cidate<='$todate 23:59:59'";
 	  }
       else {
 	    $First = "Softare Title";
 		$Second = "Asset Number";
 		$extrasearchdescription = "and $second was checked out to the hardware from $fromdate to $todate";
 	    $sql = "SELECT DISTINCT software.title, hardwares.asset, software.codate, software.cidate FROM software, hardwares WHERE ".
-	           "software.hid=hardwares.hid AND title LIKE '%$search%' AND codate>='$fromdate' AND cidate<='$todate'";
+	           "software.hid=hardwares.hid AND title LIKE '%$search%' AND codate>='$fromdate 00:00:00' AND cidate<='$todate 23:59:59'";
 		
 	  }
 	}elseif($when == "current") { 
@@ -278,7 +278,7 @@ function search(){
 	if($when == "dates"){
 	  $extrasearchdescription = "and the event occured between $fromdate and $todate";
 	  $sql = "SELECT occuredat, username, ipaddress, level, message FROM logs WHERE $second LIKE '%$search%' AND ".
-	         "occuredat<'$fromdate' AND occuredat>'$todate' ORDER BY lid DESC";
+	         "occuredat>='$fromdate 00:00:00' AND occuredat<='$todate 23:59:59' ORDER BY lid DESC";
 	}
 	else{
 	  $sql = "SELECT occuredat, username, ipaddress, level, message FROM logs WHERE $second LIKE '%$search%' ORDER BY lid DESC";
@@ -310,7 +310,7 @@ function search(){
        "<hr class=\"head\" />";
 
   if($totalrows < "1"){
-    echo "<p><b>No results were found that matched your search.</b></p>";
+    echo "<p><b>No results were found that matched your search.</b></p>$sql";
 	require_once('./include/footer.php');
 	exit();
   }
@@ -352,16 +352,27 @@ function search(){
   
 
   
+  $goto = $_SERVER['REQUEST_URI'];
+  if(stristr($_SERVER['REQUEST_URI'], "page")){
+    $goto = preg_replace("{[&]*page=[0-9]*}", '', $goto); // Matches a string containing page=[zero or more numeric characters] and replaces with nothing
+  }
+  if(preg_match("/\?[a-zA-Z]/", $goto)){  // At this point there could be a ? mark, but it might not be followed by anything...in which case we don't want to append an &.
+    $goto = $goto."&amp;";
+  }
+  elseif(!stristr($goto, "?")){
+    $goto = $goto."?";
+  }  
+    
   if($numofpages > "1") {
     if($page != "1") { // Generate Prev link only if previous pages exist.
       $pageprev = $page - "1";
-       echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$pageprev\"> Prev </a>";
+       echo "<a href=\"{$goto}page=$pageprev\"> Prev </a>";
     }
     
 	if($numofpages < "10"){
 	  $i = "1";
       while($i < $page) { // Build all page number links up to the current page
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
 	    $i++;
       }
 	}
@@ -372,7 +383,7 @@ function search(){
 	  $i = $page - "3";
 	  while($i < $page ) { // Build all page number links up to the current page
 	    if($i > "0"){
-          echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+          echo "<a href=\"{$goto}page=$i\"> $i </a>";
 	    }
 		$i++;
       }
@@ -382,7 +393,7 @@ function search(){
 	if($numofpages < "10"){	
       $i = $page + "1"; // Now we'll build all the page numbers after the current page if they exist.
       while(($numofpages-$page > "0") && ($i < $numofpages + "1")) {
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
         $i++;
       }
 	}
@@ -390,7 +401,7 @@ function search(){
 	  $i = $page + "1";
 	  $j = "1";
 	  while(($numofpages-$page > "0") && ($i <= $numofpages) && ($j <= "3")) {
-        echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$i\"> $i </a>";
+        echo "<a href=\"{$goto}page=$i\"> $i </a>";
         $i++;
 		$j++;
       }
@@ -400,7 +411,7 @@ function search(){
 	}
     if($page < $numofpages) { // Generate Next link if there is a page after this one
       $nextpage = $page + "1";
-	  echo "<a href=\"".$_SERVER['REQUEST_URI']."&amp;page=$nextpage\"> Next </a>";
+	  echo "<a href=\"{$goto}page=$nextpage\"> Next </a>";
 	}
   }
     
@@ -416,17 +427,25 @@ function search(){
 	if($upperlimit > $totalrows) {
 	  $upperlimit = $totalrows;
 	}
-	if($rows <= $totalrows){
+	if($result_count <= $totalrows){
 	  $howmany = "$lowerlimit - $upperlimit out of";
 	}
 	else{
 	  $howmany = "";
 	}
-    echo "<br />\n<br />\nShowing $howmany $totalrows results.<br />\n";  
+    echo "<br />\n<br />\nShowing $howmany $totalrows results.<br />\n"; 
+  require_once('./include/footer.php'); 
 
   require_once('./include/footer.php');
   
 } // Ends search function
+
+/*
+ * The search form uses the script.aculo.us javascript library as well as options.js which is taken from
+ * http://www.quirksmode.org/js/options.html. I have modified options.js to call scriptaculous functions that
+ * enable actions on changes of drop down lists. Options.js enables dynamic drop-down list contents based on the
+ * selection in a previous drop-down list.
+ */
 
 function show_form(){
   global $CI;
@@ -456,10 +475,10 @@ function show_form(){
   <br />
   <div id="extraforms" style="display: none;">
   <div id="extraforms2" style="display: none;">
-  <input type="radio" name="when" value="current" onclick="new Effect.Fade('extraextraforms', {duration: 0.2})" checked="checked"> currently assigned<br />
+  <input type="radio" name="when" value="current" onclick="new Effect.Fade('extraextraforms', {duration: 0.2})" checked="checked" /> currently assigned<br />
   </div>  
-  <input type="radio" name="when" value="all" onclick="new Effect.Fade('extraextraforms', {duration: 0.2})"> in all records <br />
-  <input type="radio" name="when" value="dates" onclick="new Effect.Appear('extraextraforms', {duration: 0.2})"> specify a date range<br />
+  <input type="radio" name="when" value="all" onclick="new Effect.Fade('extraextraforms', {duration: 0.2})" /> in all records <br />
+  <input type="radio" name="when" value="dates" onclick="new Effect.Appear('extraextraforms', {duration: 0.2})" /> specify a date range<br />
   <div id="extraextraforms" style="display: none;">
   <br />
   <b>From:</b><br />
@@ -468,7 +487,7 @@ function show_form(){
 	  $year = "2006";
 	  $currentyear = date('Y');
 	  while($year <= $currentyear){
-	    echo "<option>$year</option>";
+	    echo "<option value=\"$year\">$year</option>";
 		$year++;
 	  }
 	?>
@@ -477,7 +496,7 @@ function show_form(){
     <?php 
 	  $month = "1";
 	  while($month < "13"){
-	    echo "<option>$month</option>";
+	    echo "<option value=\"$month\">$month</option>";
 		$month++;
 	  }
 	?>
@@ -486,7 +505,7 @@ function show_form(){
     <?php 
 	  $day = "1";
 	  while($day < "32"){
-	    echo "<option>$day</option>";
+	    echo "<option value=\"$day\">$day</option>";
 		$day++;
 	  }
 	?>
@@ -498,7 +517,7 @@ function show_form(){
 	  $year = "2006";
 	  $currentyear = date('Y');
 	  while($year <= $currentyear){
-	    echo "<option>$year</option>";
+	    echo "<option value=\"$year\">$year</option>";
 		$year++;
 	  }
 	?>
@@ -507,7 +526,7 @@ function show_form(){
     <?php 
 	  $month = "1";
 	  while($month < "13"){
-	    echo "<option>$month</option>";
+	    echo "<option value=\"$month\">$month</option>";
 		$month++;
 	  }
 	?>
@@ -516,7 +535,7 @@ function show_form(){
     <?php 
 	  $day = "1";
 	  while($day < "32"){
-	    echo "<option>$day</option>";
+	    echo "<option value=\"$day\">$day</option>";
 		$day++;
 	  }
 	?>
@@ -525,10 +544,11 @@ function show_form(){
   </div>
   </div>
   <br />
-  <input type="checkbox" name="export" /> Export Results as Excel spreadsheet<br />
+  <input type="checkbox" name="export" /> Export Results as a Microsoft Excel spreadsheet<br />
   <br />
   <input type="submit" value=" Go " /></p>
   </form>
+  <br />
   <?php
   require_once('./include/footer.php');
 } // Ends list_searches function

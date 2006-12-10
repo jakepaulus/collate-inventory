@@ -31,8 +31,13 @@ function change_password(){
   session_destroy();
   session_start();
   global $CI;
-  $returnto = urldecode($returnto);
-  $username = clean($_GET['username']);
+  
+  if(isset($_GET['returnto'])){
+    $returnto = urldecode($_GET['returnto']);
+  }
+  else{
+    $returnto = "";
+  }
   if(isset($_GET['action'])){
     $action = $_GET['action'];
   }
@@ -73,6 +78,14 @@ function change_password(){
 	exit();
   }
   
+  if(strlen($password) < $CI['settings']['passwdlength']){
+    $notice = "The new password you have entered is less than the minimum password length required by your administrator.".
+	          "Please try again.";
+    $returnto = urlencode($returnto);
+	header("Location: login.php?op=changepasswd&notice=$notice&returnto=$returnto");
+	exit();
+  }
+  
   $auth = auth($username, $passwd);
   $password = sha1(clean($password));
   
@@ -101,7 +114,14 @@ function change_password(){
 	exit();
   }
   
-  $expireat = $now + $CI['settings']['passwdexpire'];
+  if($CI['settings']['accountexpire'] != "0"){
+    $then = $CI['settings']['accountexpire']; // Get number of days from settings
+    $expireat = strtotime("+$then days"); // strtotime is awesome!
+	$expireat = date("Y-m-d H:i:s", $expireat); // Format the result to match MySQL's datetime format. 
+  }
+  else{
+    $expireat = "0000-00-00 00:00:00";
+  }
   $sql = "UPDATE users SET passwd='$password', tmppasswd=NULL, loginattempts='0', passwdexpire='$expireat' WHERE username='$username'";
   mysql_query($sql);
   
@@ -229,13 +249,7 @@ function ci_login() {
   // If they have gotten this far, they entered a correct pair of username and password.
   $now = date('Y-m-d H:i:s');
   
-  if($auth['tmppasswd']){ // They logged in successfully with a temporary password. We need to make the temp password perminant. 
-    $password = $auth['tmppasswd'];
-	$expireat = $now + $CI['settings']['passwdexpire'];
-    $sql = "UPDATE users SET passwd='$password', tmppasswd=NULL, passwdexpire='$expireat' WHERE username='$username'";
-	mysql_query($sql);
-  }
-  elseif($auth['passwdexpire'] < $now && !isset($expireat) && $auth['passwdexpire'] != '0000-00-00 00:00:00'){
+  if($auth['passwdexpire'] < $now && $auth['passwdexpire'] != '0000-00-00 00:00:00' || isset($auth['tmppasswd'])){
     $returnto = urlencode($returnto);
 	$notice = "Your password has expired. You are required by your administrator to change your password before continuing.";
     header("Location: login.php?op=changepasswd&username=$username&returnto=$returnto&notice=$notice");
@@ -289,7 +303,7 @@ function auth($username, $password){
   
   list($passwd,$tmppasswd,$accesslevel,$loginattempts,$passwdexpire) = mysql_fetch_row($row);
   
-  if($loginattempts > $CI['settings']['loginattempts']){
+  if($loginattempts >= $CI['settings']['loginattempts']){
     return "locked";
   }
   
