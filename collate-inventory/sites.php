@@ -48,7 +48,7 @@ function list_sites() {
   $limit = "5";
   $sql = "SELECT COUNT(*) FROM sites"; // To determine the number of pages
   $result_count = mysql_query($sql);
-  $totalrows = mysql_result($result_count, 0, 0);
+  $totalrows = mysql_result($result_count, 0);
   $numofpages = ceil($totalrows/$limit);
     
   echo "<h1>Sites</h1>\n".

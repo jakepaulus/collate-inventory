@@ -2,8 +2,8 @@ Collate:Inventory
 Copyright (C) 2006  Jake Paulus, jakepaulus@gmail.com
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of version 2 of the License of the GNU General Public
-License as published by the Free Software Foundation.
+it under the terms of version 2 the GNU General Public License as 
+published by the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 
 
-Scriptaculous 
+Scriptaculous (a Javascript library)
 Copyright (c) 2005 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us) and
 are licensed under the MIT license, http://wiki.script.aculo.us/scriptaculous/show/License
 
 All icons are from the Nuvola collection
-Copyright (C) David Vignoni (http://icon-king.com/) and are licensed under the LGPL, http://www.gnu.org/copyleft/lgpl.html
+Copyright (C) David Vignoni (http://icon-king.com/) and are licensed under the Gnu LGPL 
+Licese, http://www.gnu.org/copyleft/lgpl.html

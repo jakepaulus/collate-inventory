@@ -21,7 +21,7 @@ require_once('./include/header.php');
     <h3>Documentation</h3>
       <p>
       Documentation for this application can be found in the docs directory that came with this distribution. You can read the 
-	  documenation by clicking <a href="docs/index.php">this link</a>. You can also view the documentation online at 
+	  documenation by clicking <a href="docs/documentation.txt">this link</a>. You can also view the documentation online at 
 	  <a href="http://collate.info/">Collate.info</a>.
       </p>
 

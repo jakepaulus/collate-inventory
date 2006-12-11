@@ -16,7 +16,7 @@ require_once('./include/header.php');
 </tr>
 <tr><td><br /></td></tr>
 <tr>
-<td align="center" style="width: 25%"><a href="./docs/index.php"><img height="48" width="48" alt="[?]" src="./images/help_large.gif" /></a><br />
+<td align="center" style="width: 25%"><a href="./docs/documentation.txt"><img height="48" width="48" alt="[?]" src="./images/help_large.gif" /></a><br />
 <b>Documentation</b></td>
 <td align="center" style="width: 25%"><a href="./logs.php"><img height="48" width="48" alt="[?]" src="./images/logs.gif" /></a><br />
 <b>Logs</b></td>

@@ -6,7 +6,7 @@ date_default_timezone_set ('UTC');
 //------------- Build CI array var and put version number in it -----------------------------
 
 $CI = array();
-$CI['version'] = "alpha";
+$CI['version'] = "0.9";
 
 if(isset($_SESSION['accesslevel'])){
   $CI['user']['accesslevel'] = $_SESSION['accesslevel'];

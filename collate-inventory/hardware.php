@@ -513,7 +513,7 @@ function list_hardware(){
     $sort = "category";
   }
   
-  $limit = "25";
+  $limit = "10";
   $sql = "SELECT hid FROM hardwares WHERE username IS NOT NULL"; // Determine the number of pages
   $result_count = mysql_query($sql);
   $totalrows = mysql_num_rows($result_count);
@@ -532,7 +532,7 @@ function list_hardware(){
   }
   
   $lowerlimit = $page * $limit - $limit;
-  $sql = "SELECT hid, category, asset, serial, username FROM hardwares WHERE username IS NOT NULL ORDER BY $sort LIMIT $lowerlimit, $limit"; 
+  $sql = "SELECT hid, category, asset, serial, username FROM hardwares WHERE username IS NOT NULL ORDER BY $sort ASC LIMIT $lowerlimit, $limit"; 
   $row = mysql_query($sql);
   
 

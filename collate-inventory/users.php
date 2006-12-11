@@ -282,8 +282,15 @@ function update_user() {
       strlen($_POST['state']) > "2" or 
       strlen($_POST['zip']) > "5") || 
       strlen($_POST['sitesearch']) > "2") { 
-	  
-    $tmppasswd = sha1(clean($_POST['tmppasswd']));
+	
+	$tmppasswd = clean($_POST['tmppasswd']);
+    if(strlen($tmppasswd) < $CI['settings']['passwdlength']){
+	  $result = "The password you have set for the user is too short. Please try again";
+	  require_once('./include/infopage.php');
+	}
+	else{
+	  $tmppasswd = sha1($tmppasswd);
+	}
 	$perms = clean($_POST['perms']);
 	$phone = clean($_POST['phone']);
     $altphone = clean($_POST['altphone']);
@@ -307,7 +314,7 @@ function update_user() {
     else { // They entered no site information, we'll call their location "remote" so that the hardware has a location on the list hardware page.
       $site = "remote";
     }
-	if($CI['user']['accesslevel'] === "5" || $CI['settings']['checklevel5perms'] === "0"){
+	if($CI['user']['accesslevel'] === "5"){
       if(!empty($tmppasswd)){ 
         $sql = "UPDATE users SET tmppasswd='$tmppasswd', accesslevel='$perms', phone='$phone', altphone='$altphone',".
                "address='$address', city='$city', state='$state', zip='$zip', site='$site', email='$email', ".
@@ -612,14 +619,11 @@ function add_user(){
 		if($CI['settings']['checklevel3perms'] === "1"){
 		  $show3 = $show;
 		}
-		if($CI['settings']['checklevel5perms'] === "1"){
-		  $show5 = $show;
-		}
 	  ?>
 	    <input type="radio" name="perms" onclick="new Effect.Fade('extraforms', {duration: 0.2})" value="0" checked="checked" /> None<br />
         <input type="radio" name="perms" <?php echo $show1; ?> value="1" />Read-Only<br />
         <input type="radio" name="perms" <?php echo $show3; ?> value="3" />Read+Write<br />
-	    <input type="radio" name="perms" <?php echo $show5; ?> value="5" />Admin<br />
+	    <input type="radio" name="perms" <?php echo $show; ?> value="5" />Admin<br />
       </p>
 	  <?php } ?>
 	  <div id="extraforms" style="display: none;">   
@@ -700,6 +704,13 @@ function process_new_user(){
 	  $CI['settings']['ldapauth'] === "0") {
 	 
 	  $tmppasswd = clean($_POST['tmppasswd']);
+	  if(strlen($tmppasswd) < $CI['settings']['passwdlength']){
+	    $result = "The password you have set for the user is too short. Please try again";
+	    require_once('./include/infopage.php');
+	  }
+	  else{
+	    $tmppasswd = sha1($tmppasswd);
+	  }
 	}
   }
   

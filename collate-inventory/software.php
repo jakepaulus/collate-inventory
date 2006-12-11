@@ -380,11 +380,11 @@ function list_softwares(){
   $sort = "title";
   }
 
-  $limit = "25";    // This is the number of rows per page to be displayed. 
+  $limit = "10";    // This is the number of rows per page to be displayed. 
   $query_count   = "SELECT COUNT(*) FROM softwares";
   $result_count   = mysql_query($query_count);    
-  $totalrows       = mysql_result($result_count, 0, 0);
-  $numofpages   = round($totalrows/$limit, 0);  // This rounds the division result up to the nearest whole number.
+  $totalrows       = mysql_result($result_count, 0);
+  $numofpages = ceil($totalrows/$limit);  // This rounds the division result up to the nearest whole number.
   
   if(empty($_GET['page'])){
     $page = "1";
@@ -394,7 +394,7 @@ function list_softwares(){
   }
 
   $lowerlimit = $page * $limit - $limit;   
-  $sql  = "SELECT title, total, inuse FROM softwares ORDER BY $sort LIMIT $lowerlimit, $limit";
+  $sql  = "SELECT title, total, inuse FROM softwares ORDER BY $sort ASC LIMIT $lowerlimit, $limit";
 
   $row = mysql_query($sql); 
 

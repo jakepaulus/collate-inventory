@@ -1,1 +1,10 @@
-Thanks Anders Norrbring on php.net in comments for nl2br function for providing a regular expression to do <br /> to new line conversion.
+Much thanks to Justin Guagliata (Breakintheweb.com) for collaboration during the early stages and putting up with my many "Hey dude, check this out" moments throughout development!
+
+Thanks to Thomas Fuchs for Scriptaculous!
+
+Thanks to Jonas David John of http://www.jonasjohn.de/ for his Public Domain web-design.
+
+Thanks to David Vignoni of icon-king.com for making the Nuvolo collection of open source icons.
+
+Thanks Anders Norrbring on php.net in comments for nl2br function for providing a regular expression 
+to do <br /> to new line conversion.

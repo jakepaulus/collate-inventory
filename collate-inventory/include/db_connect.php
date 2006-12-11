@@ -1,14 +1,14 @@
 <?php
-  /* This is ripped off of Justin Guagliata's db connect script from the forum code he wrote
+  /* This is borrowed from Justin Guagliata's db connect script from the forum code he wrote
     * a long, long time ago. Thanks Justin, it still works. I've left it in the form of a function
-    * in case we ever want to change it to "connectToDB($db);" for example.
+    * so that the variables are strictly localized inside of the function.
     */
 
 connectToDB();
 
 function connectToDB() {
 
-  //database host
+  //database host (IP Address or Hostname)
   $db_host = "localhost";
 
   //database username

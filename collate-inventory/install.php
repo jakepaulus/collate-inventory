@@ -1,3 +1,10 @@
+<?php
+
+require_once('./include/db_connect.php');
+
+$sql = 
+"
+DROP TABLE IF EXISTS `hardware`;;
 CREATE TABLE `hardware` (
   `coid` int(11) NOT NULL auto_increment,
   `username` varchar(30) NOT NULL,
@@ -6,8 +13,9 @@ CREATE TABLE `hardware` (
   `codate` datetime NOT NULL,
   `cidate` datetime NOT NULL,
   PRIMARY KEY  (`coid`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Hardware activity records' AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Hardware activity records' AUTO_INCREMENT=1 ;;
 
+DROP TABLE IF EXISTS `hardwares`;;
 CREATE TABLE `hardwares` (
   `hid` int(11) NOT NULL auto_increment,
   `category` varchar(50) NOT NULL,
@@ -19,8 +27,9 @@ CREATE TABLE `hardwares` (
   UNIQUE KEY `asset` (`asset`),
   KEY `serial` (`serial`),
   FULLTEXT KEY `desccription` (`description`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of hardware' AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of hardware' AUTO_INCREMENT=1 ;;
 
+DROP TABLE IF EXISTS `logs`;;
 CREATE TABLE `logs` (
   `lid` tinyint(11) NOT NULL auto_increment,
   `occuredat` datetime NOT NULL,
@@ -30,26 +39,29 @@ CREATE TABLE `logs` (
   `message` varchar(255) NOT NULL,
   PRIMARY KEY  (`lid`),
   KEY `username` (`username`,`message`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;;
 
+DROP TABLE IF EXISTS `settings`;;
 CREATE TABLE `settings` (
   `name` varchar(50) NOT NULL,
   `value` varchar(50) NOT NULL,
   PRIMARY KEY  (`name`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Collate:Inventory settings';
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Collate:Inventory settings';;
 
-INSERT INTO `settings` VALUES ('checklevel5perms', '0');
-INSERT INTO `settings` VALUES ('checklevel3perms', '0');
-INSERT INTO `settings` VALUES ('checklevel1perms', '0');
-INSERT INTO `settings` VALUES ('adminname', '');
-INSERT INTO `settings` VALUES ('adminemail', '');
-INSERT INTO `settings` VALUES ('adminphone', '');
-INSERT INTO `settings` VALUES ('autoasset', '1');
-INSERT INTO `settings` VALUES ('ldapauth', '0');
-INSERT INTO `settings` VALUES ('passwdlength', '5');
-INSERT INTO `settings` VALUES ('accountexpire', '60');
-INSERT INTO `settings` VALUES ('loginattempts', '4');
+INSERT INTO `settings` VALUES ('checklevel5perms', '0');;
+INSERT INTO `settings` VALUES ('checklevel3perms', '0');;
+INSERT INTO `settings` VALUES ('checklevel1perms', '0');;
+INSERT INTO `settings` VALUES ('adminname', '');;
+INSERT INTO `settings` VALUES ('adminemail', '');;
+INSERT INTO `settings` VALUES ('adminphone', '');;
+INSERT INTO `settings` VALUES ('autoasset', '1');;
+INSERT INTO `settings` VALUES ('ldapauth', '0');;
+INSERT INTO `settings` VALUES ('passwdlength', '5');;
+INSERT INTO `settings` VALUES ('accountexpire', '60');;
+INSERT INTO `settings` VALUES ('loginattempts', '4');;
+INSERT INTO `settings` VALUES ('version', '1.0');;
 
+DROP TABLE IF EXISTS `sites`;;
 CREATE TABLE `sites` (
   `sid` int(11) NOT NULL auto_increment,
   `name` varchar(50) NOT NULL,
@@ -60,8 +72,9 @@ CREATE TABLE `sites` (
   PRIMARY KEY  (`sid`),
   UNIQUE KEY `name` (`name`),
   KEY `city` (`city`,`state`,`zip`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of locations' AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of locations' AUTO_INCREMENT=1 ;;
 
+DROP TABLE IF EXISTS `software`;;
 CREATE TABLE `software` (
   `coid` int(11) NOT NULL auto_increment,
   `title` varchar(255) NOT NULL,
@@ -71,8 +84,9 @@ CREATE TABLE `software` (
   PRIMARY KEY  (`coid`),
   KEY `uid` (`hid`),
   KEY `sid` (`title`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Software activity records' AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='Software activity records' AUTO_INCREMENT=1 ;;
 
+DROP TABLE IF EXISTS `softwares`;;
 CREATE TABLE `softwares` (
   `sid` int(11) NOT NULL auto_increment,
   `title` varchar(100) NOT NULL,
@@ -82,8 +96,9 @@ CREATE TABLE `softwares` (
   PRIMARY KEY  (`sid`),
   UNIQUE KEY `title` (`title`),
   FULLTEXT KEY `description` (`description`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of software titles' AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='List of software titles' AUTO_INCREMENT=1 ;;
 
+DROP TABLE IF EXISTS `users`;;
 CREATE TABLE `users` (
   `uid` int(11) NOT NULL auto_increment,
   `username` varchar(30) NOT NULL,
@@ -102,6 +117,47 @@ CREATE TABLE `users` (
   `passwdexpire` datetime NOT NULL,
   PRIMARY KEY  (`uid`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='User Table' AUTO_INCREMENT=2 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='User Table' AUTO_INCREMENT=2 ;;
 
-INSERT INTO `users` VALUES (1, 'system', '', NULL, 0, '', '', '', '', '', '', '', '', 9, '2006-01-01 00:00:01');
+INSERT INTO `users` (uid, username) VALUES ('0', 'system');;
+UPDATE `users` SET `uid` = '0' WHERE username='system'
+";
+
+$results = multiple_query($sql);
+
+$tok = strtok($results, "<br />");
+
+if($tok){ // There were erors.
+    ?>
+  <html>
+  <head>
+    <title>Error!</title>
+  </head>
+  <body>
+  <h1>An error has occured.</h1>
+  <p>Below you will find the mysql erros that prevented this application from installing properly.</p>
+  <?php
+  echo $results;
+  ?>
+  </body>
+  </html>
+  <?php
+}
+else{ // Everything went well.
+  $notice = "This application has been successfully installed. Please delete install.php from your web server.";
+  header("Location: index.php?notice=$notice");
+}
+
+function multiple_query($sql)
+   {
+   $tok = strtok($sql, ";;");
+   while ($tok)
+       {
+       mysql_query($tok);
+	   $results = mysql_error()."<br />$results<br /><br />";
+       $tok = strtok(";;");
+       }
+   return $results;
+   }
+   
+?>
