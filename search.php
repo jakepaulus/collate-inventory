@@ -310,7 +310,7 @@ function search(){
        "<hr class=\"head\" />";
 
   if($totalrows < "1"){
-    echo "<p><b>No results were found that matched your search.</b></p>$sql";
+    echo "<p><b>No results were found that matched your search.</b></p>";
 	require_once('./include/footer.php');
 	exit();
   }
