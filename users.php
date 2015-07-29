@@ -392,7 +392,7 @@ function list_users(){
     $bgcolor = "#E0E0E0"; // light gray
     echo "<p style=\"text-align: right;\"><a href=\"users.php?op=add\"><img src=\"./images/add.gif\" alt=\"Add\"/> Add a User </a></p>".
             "<table width=\"100%\">\n". // Here we actually build the HTML table	   
-	    "<tr><th align=\"left\"><a href=\"users.phpsort=username\">Username</a></th>".
+	    "<tr><th align=\"left\"><a href=\"users.php?sort=username\">Username</a></th>".
 	   "<th align=\"left\"><a href=\"users.php?sort=city\">Site</a></th>".
 	   "<th align=\"left\">Email Address</th></tr><tr><td colspan=\"3\"><hr class=\"head\" /></td></tr>\n";
     
