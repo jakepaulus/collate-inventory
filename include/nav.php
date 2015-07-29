@@ -43,7 +43,7 @@
   &nbsp;   
   <form action="software.php" method="get">
     <div class="left_nav">
-      <h3>Softare</h3>   
+      <h3>Software</h3>   
       <div class="inner_box">
         <ul>
           <li><a href="software.php?op=add">Add Software</a></li>
